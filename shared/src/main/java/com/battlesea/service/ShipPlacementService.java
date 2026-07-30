@@ -5,6 +5,7 @@ import java.util.*;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.TypeShip;
 import com.battlesea.model.Board;
+import com.battlesea.model.Player;
 import com.battlesea.model.Ship;
 
 public class ShipPlacementService {
@@ -21,7 +22,7 @@ public class ShipPlacementService {
         }
     }
 
-    public Board generateRandomShips() {
+    public Board generateRandomShips(Player player) {
         Board board = new Board();
         board.init();
 
@@ -39,7 +40,9 @@ public class ShipPlacementService {
             }
         }
 
+        board.setPlayer(player);
         board.setShips(ships);
+
         return board;
     }
 

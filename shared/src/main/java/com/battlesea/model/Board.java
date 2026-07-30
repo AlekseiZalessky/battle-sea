@@ -9,6 +9,7 @@ public class Board {
     public static final int SIZE = 10;
     private List<Ship> ships;
     private Cell[][] cells = new Cell[SIZE][SIZE];
+    private Player player;
 
     public Board() {
         this.ships = new ArrayList<>();
@@ -73,5 +74,13 @@ public class Board {
 
     public void setCells(Cell[][] cells) {
         this.cells = cells;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 }

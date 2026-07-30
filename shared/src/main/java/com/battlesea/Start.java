@@ -6,8 +6,8 @@ import com.battlesea.service.ShipPlacementService;
 public class Start {
     public static void main(String[] args) {
         ShipPlacementService service = new ShipPlacementService();
-        Board board = service.generateRandomShips();
-        board.printCells();
+//        Board board = service.generateRandomShips();
+//        board.printCells();
 
     }
 }
