@@ -1,0 +1,77 @@
+package com.battlesea.model;
+
+import com.battlesea.enums.Cell;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Board {
+    public static final int SIZE = 10;
+    private List<Ship> ships;
+    private Cell[][] cells = new Cell[SIZE][SIZE];
+
+    public Board() {
+        this.ships = new ArrayList<>();
+    }
+
+    public void init() {
+        for (int x = 0; x < SIZE; x++) {
+            for (int y = 0; y < SIZE; y++) {
+                cells[x][y] = Cell.EMPTY;
+            }
+        }
+    }
+
+    public boolean isGameOver() {
+        for (Ship ship : ships) {
+            if (!ship.isSunk()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void printCells() {
+        for (int x = 0; x < SIZE; x++) {
+            for (int y = 0; y < SIZE; y++) {
+                switch (cells[x][y]) {
+                    case EMPTY:
+                        System.out.print("\u001B[37m" + cells[x][y] + " \u001B[0m");
+                        break;
+                    case HIT:
+                        System.out.print("\u001B[31m" + cells[x][y] + " \u001B[0m");
+                        break;
+                    case MISS:
+                        System.out.print("\u001B[90m" + cells[x][y] + " \u001B[0m");
+                        break;
+                    case SHIP:
+                        System.out.print("\u001B[34m" + cells[x][y] + " \u001B[0m");
+                        break;
+                    case SUNK:
+                        System.out.print("\u001B[31m" + cells[x][y] + " \u001B[0m");
+                        break;
+                    case HALO:
+                        System.out.print("\u001B[33m" + cells[x][y] + " \u001B[0m");
+                        break;
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    public List<Ship> getShips() {
+        return ships;
+    }
+
+    public void setShips(List<Ship> ships) {
+        this.ships = ships;
+    }
+
+    public Cell[][] getCells() {
+        return cells;
+    }
+
+    public void setCells(Cell[][] cells) {
+        this.cells = cells;
+    }
+}
