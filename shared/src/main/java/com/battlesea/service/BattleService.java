@@ -5,7 +5,7 @@ import com.battlesea.model.Game;
 
 public class BattleService {
 
-    public void startGame(Game game, Board playerBoard1, Board playerBoard2) {
+    public void startGame(Game game) {
 
 
     }

@@ -3,8 +3,9 @@ package com.battlesea.headless;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.backends.headless.HeadlessApplication;
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration;
-import com.battlesea.Main;
+//import com.battlesea.Main;
 import com.battlesea.server.GameServer;
+import com.sun.tools.javac.Main;
 
 /** Launches the headless application. Can be converted into a utilities project or a server application. */
 public class HeadlessLauncher {
@@ -12,13 +13,13 @@ public class HeadlessLauncher {
 
         GameServer gameServer = new GameServer(8189);
         gameServer.start();
-        createApplication();
+//        createApplication();
     }
 
-    private static Application createApplication() {
-        // Note: you can use a custom ApplicationListener implementation for the headless project instead of Main.
-        return new HeadlessApplication(new Main(), getDefaultConfiguration());
-    }
+//    private static Application createApplication() {
+//        // Note: you can use a custom ApplicationListener implementation for the headless project instead of Main.
+//        return new HeadlessApplication(new Main(), getDefaultConfiguration());
+//    }
 
     private static HeadlessApplicationConfiguration getDefaultConfiguration() {
         HeadlessApplicationConfiguration configuration = new HeadlessApplicationConfiguration();

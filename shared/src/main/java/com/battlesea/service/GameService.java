@@ -25,7 +25,7 @@ public class GameService {
 //
 //    }
 
-    public void startGame(Player currentPlayer, Board board, GameMode gameMode) {
+    public Game startGame(Player currentPlayer, Board board, GameMode gameMode) {
         Game game = null;
         Player opponent = null;
         Board currentPlayerBoard = board;
@@ -33,8 +33,11 @@ public class GameService {
         if (gameMode == com.battlesea.enums.GameMode.PVE) {
             opponent = new Player("Computer");
             game = new Game(currentPlayer, opponent, gameMode);
-            currentPlayerBoard = shipPlacementService.generateRandomShips(currentPlayer);
+//            currentPlayerBoard = shipPlacementService.generateRandomShips(currentPlayer);
             opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent);
+
+            opponentPlayerBoard.printCells();
+            System.out.println();
 
         }
 
@@ -57,13 +60,18 @@ public class GameService {
 //        }
 
         if(game == null){
-            return;
+            return null;
         }
 
+        game.setBoardPlayer1(board);
+        game.setBoardPlayer2(opponentPlayerBoard);
         game.setGameMode(gameMode);
         game.setGameStatus(GameStatus.STARTED);
         game.setStartTime(LocalDateTime.now());
-        battleService.startGame(game, currentPlayerBoard, opponentPlayerBoard);
+
+        System.out.println(game);
+        battleService.startGame(game);
+        return game;
     }
 
 //    private Player findOpponent() {

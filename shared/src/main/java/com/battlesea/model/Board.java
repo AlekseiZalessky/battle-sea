@@ -3,6 +3,7 @@ package com.battlesea.model;
 import com.battlesea.enums.Cell;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Board {
@@ -82,5 +83,14 @@ public class Board {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    @Override
+    public String toString() {
+        return "Board{" +
+            "ships=" + ships +
+            ", cells=" + Arrays.toString(cells) +
+            ", player=" + player +
+            '}';
     }
 }

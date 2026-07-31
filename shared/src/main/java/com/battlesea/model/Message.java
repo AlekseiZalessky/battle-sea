@@ -5,7 +5,10 @@ public class Message {
     private String username;
     private int x;
     private int y;
-    private Object response;
+    private String response;
+    private Board boardPlayer1;
+    private Board boardPlayer2;
+    private Game game;
 
     public Message() {
 
@@ -43,11 +46,47 @@ public class Message {
         this.y = y;
     }
 
-    public Object getResponse() {
+    public String getResponse() {
         return response;
     }
 
-    public void setResponse(Object response) {
+    public void setResponse(String response) {
         this.response = response;
+    }
+
+    public Board getBoardPlayer1() {
+        return boardPlayer1;
+    }
+
+    public void setBoardPlayer1(Board boardPlayer1) {
+        this.boardPlayer1 = boardPlayer1;
+    }
+
+    public Board getBoardPlayer2() {
+        return boardPlayer2;
+    }
+
+    public void setBoardPlayer2(Board boardPlayer2) {
+        this.boardPlayer2 = boardPlayer2;
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+            "type='" + type + '\'' +
+            ", username='" + username + '\'' +
+            ", x=" + x +
+            ", y=" + y +
+            ", response='" + response + '\'' +
+            ", board=" + boardPlayer1 +
+            '}';
     }
 }

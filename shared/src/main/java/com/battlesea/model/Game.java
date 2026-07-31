@@ -15,6 +15,8 @@ public class Game {
     private LocalDateTime endTime;
     private GameMode gameMode;
     private GameStatus gameStatus;
+    private Board boardPlayer1;
+    private Board boardPlayer2;
 
     public Game(Player player1, Player player2, GameMode gameMode) {
         this.id = UUID.randomUUID();
@@ -74,5 +76,35 @@ public class Game {
 
     public void setGameStatus(GameStatus gameStatus) {
         this.gameStatus = gameStatus;
+    }
+
+    public Board getBoardPlayer1() {
+        return boardPlayer1;
+    }
+
+    public void setBoardPlayer1(Board boardPlayer1) {
+        this.boardPlayer1 = boardPlayer1;
+    }
+
+    public Board getBoardPlayer2() {
+        return boardPlayer2;
+    }
+
+    public void setBoardPlayer2(Board boardPlayer2) {
+        this.boardPlayer2 = boardPlayer2;
+    }
+
+    @Override
+    public String toString() {
+        return "Game{" +
+            "id=" + id +
+            ", player1=" + player1 +
+            ", player2=" + player2 +
+            ", creationTime=" + creationTime +
+            ", startTime=" + startTime +
+            ", endTime=" + endTime +
+            ", gameMode=" + gameMode +
+            ", gameStatus=" + gameStatus +
+            '}';
     }
 }
