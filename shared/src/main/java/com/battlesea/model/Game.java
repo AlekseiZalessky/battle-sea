@@ -105,6 +105,8 @@ public class Game {
             ", endTime=" + endTime +
             ", gameMode=" + gameMode +
             ", gameStatus=" + gameStatus +
+            ", boardPlayer1=" + boardPlayer1 +
+            ", boardPlayer2=" + boardPlayer2 +
             '}';
     }
 }

@@ -30,6 +30,7 @@ public class MenuScreen implements Screen {
 
     @Override
     public void show() {
+
         try {
             client = new Client("localhost", 8189);
         } catch (Exception e) {

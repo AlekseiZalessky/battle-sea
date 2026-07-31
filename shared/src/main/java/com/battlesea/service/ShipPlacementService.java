@@ -40,6 +40,7 @@ public class ShipPlacementService {
             }
         }
 
+        clearHalo(cells);
         board.setPlayer(player);
         board.setShips(ships);
 
@@ -114,6 +115,16 @@ public class ShipPlacementService {
                     if (coordinateIsEmpty(currentX + dx, currentY + dy, cells)) {
                         cells[currentX + dx][currentY + dy] = Cell.HALO;
                     }
+                }
+            }
+        }
+    }
+
+    private void clearHalo(Cell[][] cells) {
+        for (int x = 0; x < SIZE; x++) {
+            for (int y = 0; y < SIZE; y++) {
+                if (cells[x][y] == Cell.HALO) {
+                    cells[x][y] = Cell.EMPTY;
                 }
             }
         }

@@ -20,7 +20,6 @@ import com.battlesea.Main;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
-import com.battlesea.model.Game;
 
 public class PlacementScreen implements Screen {
     private final Main game;
@@ -100,7 +99,8 @@ public class PlacementScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("click auto");
-                client.sendAutoPlaceRequest();
+//                client.sendAutoPlaceRequest();
+                client.sendMessage("PVE_AUTO");
             }
         });
         stage.addActor(pveButton);
@@ -114,7 +114,9 @@ public class PlacementScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 if (!startGame.isDisabled()) {
                     System.out.println("click start");
-                    game.setScreen(new FirstScreen(client, game, GameMode.PVE));
+//                    client.sendStartGame();
+                    client.sendMessage("START_GAME_PVE");
+                    game.setScreen(new BattleScreen(client, game, GameMode.PVE));
                 }
             }
         });
@@ -127,14 +129,9 @@ public class PlacementScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (client != null) {
-            Game game = client.getGame();
-            if (game == null) {
-                return;
-            }
-            Board newBoardPlayer1 = game.getBoardPlayer1();
-            Board newBoardPlayer2 = game.getBoardPlayer2();
-            if (newBoardPlayer1 != null && newBoardPlayer1 != boardPlayer1) {
-                boardPlayer1 = newBoardPlayer1;
+            Board newBoard = client.getBoardPlayer1();
+            if (newBoard != null) {
+                boardPlayer1 = newBoard;
                 if (!boardPlayer1.getShips().isEmpty()) {
                     startGame.setDisabled(false);
                 }
@@ -173,17 +170,12 @@ public class PlacementScreen implements Screen {
 
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-
-                if (cells[i][j] == Cell.EMPTY || cells[i][j] == Cell.HALO) {
+                if (cells[i][j] == Cell.EMPTY) {
                     batch.draw(cellEmpty, 32 * i + 50, 32 * j + 50);
                 }
                 if (cells[i][j] == Cell.SHIP) {
                     batch.draw(cellShip, 32 * i + 50, 32 * j + 50);
                 }
-//                    if (cells[i][j] == Cell.HALO) {
-//                        batch.draw(cellHalo, 32 * i, 32 * j);
-//                    }
-
             }
         }
 

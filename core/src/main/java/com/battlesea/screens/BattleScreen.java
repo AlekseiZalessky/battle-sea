@@ -12,17 +12,20 @@ import com.battlesea.model.Board;
 /**
  * First screen of the application. Displayed after the application is created.
  */
-public class FirstScreen implements Screen {
-    private Client client;
-    private Board board;
+public class BattleScreen implements Screen {
+    private final Client client;
+    private Board boardPlayer1;
+    private Board boardPlayer2;
     private SpriteBatch batch;
     private Texture cellEmpty;
     private Texture cellShip;
     private Texture cellHalo;
+    private Texture cellMiss;
+    private Texture cellHit;
     private Main game;
     private GameMode gamemode;
 
-    public FirstScreen(Client client, Main game, GameMode gamemode) {
+    public BattleScreen(Client client, Main game, GameMode gamemode) {
         this.client = client;
         this.game = game;
         this.gamemode = gamemode;
@@ -30,61 +33,81 @@ public class FirstScreen implements Screen {
 
     @Override
     public void show() {
+        System.out.println("FirstScreen show");
         batch = new SpriteBatch();
         cellEmpty = new Texture("cellEmpty.png");
         cellShip = new Texture("cellShip.png");
         cellHalo = new Texture("cellHalo.png");
-
-        // Prepare your screen here.
+        cellMiss = new Texture("cellMiss.png");
+        cellHit = new Texture("cellHit.png");
     }
 
     @Override
     public void render(float delta) {
         if (client != null) {
-            Board newBoard = client.getBoard();
-            if (newBoard != null && newBoard != board) {
-                board = newBoard;
+            Board newBoardPlayer1 = client.getBoardPlayer1();
+            if (newBoardPlayer1 != null && newBoardPlayer1 != boardPlayer1) {
+                boardPlayer1 = newBoardPlayer1;
             }
+            boardPlayer2 = client.getBoardPlayer2();
         }
+
         batch.begin();
 
-        if (board != null) {
-            drawMyBoard(batch, board);
-            drawOpponentBoard(batch, board);
+        drawMyBoard(batch, boardPlayer1);
+        drawEmptyBoard(batch);
+        if (boardPlayer2 != null) {
+            drawOpponentBoard(batch, boardPlayer2);
+        } else {
+            drawEmptyBoard(batch);
         }
 
         batch.end();
     }
 
     private void drawMyBoard(SpriteBatch batch, Board board) {
-//        Cell[][] cells = board.getCells();
-//
-//        for (int i = 0; i < 10; i++) {
-//            for (int j = 0; j < 10; j++) {
-//                if (cells != null) {
-//                    if (cells[i][j] == Cell.EMPTY || cells[i][j] == Cell.HALO) {
-//                        batch.draw(cellEmpty, 32 * i + 50, 32 * j + 50);
-//                    }
-//                    if (cells[i][j] == Cell.SHIP) {
-//                        batch.draw(cellShip, 32 * i + 50, 32 * j + 50);
-//                    }
-////                    if (cells[i][j] == Cell.HALO) {
-////                        batch.draw(cellHalo, 32 * i, 32 * j);
-////                    }
-//                }
-//            }
-//        }
-
+        Cell[][] cells = board.getCells();
+        Texture currentTexture;
+        if (cells != null) {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    currentTexture = switch (cells[i][j]) {
+                        case MISS -> cellMiss;
+                        case HIT -> cellHit;
+                        case HALO -> cellHalo;
+                        case SHIP -> cellShip;
+                        default -> cellEmpty;
+                    };
+                    batch.draw(currentTexture, 32 * i + 50, 32 * j + 50);
+                }
+            }
+        }
     }
 
     private void drawOpponentBoard(SpriteBatch batch, Board board) {
+        Cell[][] cells = board.getCells();
+        Texture currentTexture;
+        if (cells != null) {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    currentTexture = switch (cells[i][j]) {
+                        case MISS -> cellMiss;
+                        case HIT -> cellHit;
+                        case HALO -> cellHalo;
+                        default -> cellEmpty;
+                    };
+                    batch.draw(currentTexture, 32 * i + 500, 32 * j + 50);
+                }
+            }
+        }
+    }
 
+    private void drawEmptyBoard(SpriteBatch batch) {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 batch.draw(cellEmpty, 32 * i + 500, 32 * j + 50);
             }
         }
-
     }
 
     @Override
