@@ -11,6 +11,7 @@ import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 public class Client {
     private final Socket socket;
@@ -23,6 +24,7 @@ public class Client {
     private boolean resultShoot;
     private boolean gameOver;
     private Player currnetPlayer;
+    private boolean isStartingGame;
 
     public Client(String host, int port) throws Exception {
         this.socket = new Socket(host, port);
@@ -42,7 +44,8 @@ public class Client {
                 while (true) {
                     Message message = new Message();
                     message.setType("AUTH");
-                    message.setUsername("qwerty");
+                    Random rand = new Random();
+                    message.setUsername("player" + rand.nextInt(10000));
 
                     out.println(gson.toJson(message));
 
@@ -66,7 +69,6 @@ public class Client {
                         break;
                     }
                     Message message = gson.fromJson(json, Message.class);
-                    System.out.println(message);
                     if ("PVE_SUCCESS".equals(message.getType())) {
                         boardPlayer1 = message.getBoardPlayer1();
                         continue;
@@ -75,6 +77,14 @@ public class Client {
                     if("START_GAME_PVE_SUCCESS".equals(message.getType())) {
                         game = message.getGame();
                         boardPlayer2 = game.getBoardPlayer2();
+                        continue;
+                    }
+
+                    if("START_GAME_PVP_ONLINE_SUCCESS".equals(message.getType())) {
+                        System.out.println("START_GAME_PVP_ONLINE_SUCCESS");
+                        game = message.getGame();
+                        boardPlayer2 = game.getBoardPlayer2();
+                        isStartingGame = true;
                         continue;
                     }
 
@@ -116,6 +126,10 @@ public class Client {
 
     public boolean isGameOver() {
         return gameOver;
+    }
+
+    public boolean isStartingGame() {
+        return isStartingGame;
     }
 
     public Game getGame() {

@@ -25,55 +25,58 @@ public class GameService {
 //
 //    }
 
-    public Game startGame(Player currentPlayer, Board board, GameMode gameMode) {
+    public Game startGame(Player player, Board board, GameMode gameMode) {
         Game game = null;
         Player opponent = null;
-        Board currentPlayerBoard = board;
         Board opponentPlayerBoard = null;
         if (gameMode == com.battlesea.enums.GameMode.PVE) {
             opponent = new Player("Computer");
-            game = new Game(currentPlayer, opponent, gameMode);
-//            currentPlayerBoard = shipPlacementService.generateRandomShips(currentPlayer);
+            game = new Game(player, opponent, gameMode);
             opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent);
-
-            board.printCells();
-            System.out.println();
-            opponentPlayerBoard.printCells();
-            System.out.println();
-
+            game.setBoardPlayer2(opponentPlayerBoard);
         }
 
-//        if (gameMode == GameMode.PVP_ONLINE) {
-//            currentPlayerBoard = shipPlacementService.generateRandomShips(currentPlayer);
-//            game = createdGames.getFirst();
-//            if (game == null) {
-//                game = new Game(currentPlayer, gameMode);
-//                createdGames.add(game);
-//                game.setGameStatus(GameStatus.CREATED);
-//                opponent = findOpponent();
-//                if (opponent == null) {
-//                    return;
-//                }
+        if (gameMode == GameMode.PVP_ONLINE) {
+            if (createdGames.isEmpty()) {
+                System.out.println("sozdanie novoi igri");
+                game = new Game(player, gameMode);
+                createdGames.add(game);
+                game.setGameStatus(GameStatus.CREATED);
+                game.setBoardPlayer1(board);
+//                waitOpponent(game);
+//                System.out.println("opponent connected");
 //                game.setPlayer2(opponent);
-//            } else {
-//                createdGames.remove(game);
-//                game.setPlayer2(currentPlayer);
-//            }
-//        }
+
+            } else {
+                game = createdGames.getFirst();
+                System.out.println("podkluchenie k igre: " + game);
+                createdGames.remove(game);
+                game.setPlayer2(player);
+                game.setBoardPlayer2(board);
+            }
+        }
 
         if(game == null){
             return null;
         }
 
-        game.setBoardPlayer1(board);
-        game.setBoardPlayer2(opponentPlayerBoard);
         game.setGameMode(gameMode);
         game.setGameStatus(GameStatus.STARTED);
         game.setStartTime(LocalDateTime.now());
 
-        System.out.println(game);
         battleService.startGame(game);
         return game;
+    }
+
+    private void waitOpponent(Game game) {
+        while (game.getBoardPlayer2() == null) {
+            try {
+                System.out.println("waiting for opponent to start");
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 //    private Player findOpponent() {

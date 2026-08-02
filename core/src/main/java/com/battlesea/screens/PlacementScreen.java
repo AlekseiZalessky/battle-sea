@@ -113,8 +113,14 @@ public class PlacementScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 if (!startGame.isDisabled()) {
                     System.out.println("click start");
-                    client.sendMessage("START_GAME_PVE");
-                    game.setScreen(new BattleScreen(client, game, GameMode.PVE));
+
+                    if(gameMode == GameMode.PVE) {
+                        client.sendMessage("START_GAME_PVE");
+                        game.setScreen(new BattleScreen(client, game, gameMode));
+                    } else  {
+                        client.sendMessage("START_GAME_PVP_ONLINE");
+                        game.setScreen(new WaitingStartBattleScreen(client, game, gameMode));
+                    }
                 }
             }
         });

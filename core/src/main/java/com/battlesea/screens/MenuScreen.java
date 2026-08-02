@@ -25,7 +25,6 @@ public class MenuScreen implements Screen {
 
     public MenuScreen(Main game) {
         this.game = game;
-        System.out.println("game: " + game);
     }
 
     @Override
@@ -54,12 +53,12 @@ public class MenuScreen implements Screen {
         buttonStyle.font = font;
         buttonStyle.up = buttonUp; // ← добавляем фон
 
-        // Кнопка PvE
-        TextButton pveButton = new TextButton("Играть против компьютера (PvE)", buttonStyle);
-        pveButton.setSize(400, 60);
+        // Кнопка режим PvE
+        TextButton pveButton = new TextButton("PvE", buttonStyle);
+        pveButton.setSize(100, 60);
         pveButton.setPosition(
-            (Gdx.graphics.getWidth() - 400) / 2,  // центрируем по горизонтали
-            (Gdx.graphics.getHeight() - 60) / 2   // центрируем по вертикали
+            (Gdx.graphics.getWidth() - 400) / 4,
+            (Gdx.graphics.getHeight() - 60) / 2
         );
         pveButton.addListener(new ClickListener() {
             @Override
@@ -69,6 +68,22 @@ public class MenuScreen implements Screen {
             }
         });
         stage.addActor(pveButton);
+
+        // Кнопка режим Online
+        TextButton onlineButton = new TextButton("Online", buttonStyle);
+        onlineButton.setSize(100, 60);
+        onlineButton.setPosition(
+            (Gdx.graphics.getWidth() - 400) / 2,
+            (Gdx.graphics.getHeight() - 60) / 2
+        );
+        onlineButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("click Online");
+                game.setScreen(new PlacementScreen(client, game, GameMode.PVP_ONLINE));
+            }
+        });
+        stage.addActor(onlineButton);
     }
 
     @Override
