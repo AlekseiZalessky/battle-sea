@@ -17,6 +17,7 @@ public class Game {
     private GameStatus gameStatus;
     private Board boardPlayer1;
     private Board boardPlayer2;
+    private Player turnPlayer;
 
     public Game(Player player1, Player player2, GameMode gameMode) {
         this.id = UUID.randomUUID();
@@ -92,6 +93,14 @@ public class Game {
 
     public void setBoardPlayer2(Board boardPlayer2) {
         this.boardPlayer2 = boardPlayer2;
+    }
+
+    public Player getTurnPlayer() {
+        return turnPlayer;
+    }
+
+    public void setTurnPlayer(Player turnPlayer) {
+        this.turnPlayer = turnPlayer;
     }
 
     @Override

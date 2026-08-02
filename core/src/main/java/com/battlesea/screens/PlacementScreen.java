@@ -99,7 +99,6 @@ public class PlacementScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("click auto");
-//                client.sendAutoPlaceRequest();
                 client.sendMessage("PVE_AUTO");
             }
         });
@@ -114,7 +113,6 @@ public class PlacementScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 if (!startGame.isDisabled()) {
                     System.out.println("click start");
-//                    client.sendStartGame();
                     client.sendMessage("START_GAME_PVE");
                     game.setScreen(new BattleScreen(client, game, GameMode.PVE));
                 }

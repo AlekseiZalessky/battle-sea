@@ -59,6 +59,7 @@ public class ShipPlacementService {
         }
 
         Ship ship = new Ship(x, y, horizontal, type);
+        System.out.println("placeShip: ship: " + ship);
         for (int i = 0; i < sizeShip; i++) {
             if (horizontal) {
                 cells[x + i][y] = Cell.SHIP;
@@ -68,7 +69,7 @@ public class ShipPlacementService {
                 ship.addCoordinates(List.of(x, y + i));
             }
         }
-
+        System.out.println("placeShip: ship.getCoordinates: " + ship.getCoordinates());
         ships.add(ship);
         addFullHalo(ship, cells);
         deleteFromFreeCoordinates(cells);
@@ -131,10 +132,10 @@ public class ShipPlacementService {
     }
 
     private boolean coordinateIsEmpty(int x, int y, Cell[][] cells) {
-        return validateCoordinates(x, y) && cells[x][y] == Cell.EMPTY;
+        return validateCoordinate(x, y) && cells[x][y] == Cell.EMPTY;
     }
 
-    private boolean validateCoordinates(int x, int y) {
+    private boolean validateCoordinate(int x, int y) {
         return x >= 0 && x < SIZE && y >= 0 && y < SIZE;
     }
 }

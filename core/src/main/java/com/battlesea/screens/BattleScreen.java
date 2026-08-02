@@ -1,17 +1,17 @@
 package com.battlesea.screens;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.battlesea.Client.Client;
 import com.battlesea.Main;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
 
-/**
- * First screen of the application. Displayed after the application is created.
- */
+
 public class BattleScreen implements Screen {
     private final Client client;
     private Board boardPlayer1;
@@ -24,16 +24,17 @@ public class BattleScreen implements Screen {
     private Texture cellHit;
     private Main game;
     private GameMode gamemode;
+    private final Vector2 position;
 
     public BattleScreen(Client client, Main game, GameMode gamemode) {
         this.client = client;
         this.game = game;
         this.gamemode = gamemode;
+        this.position = new Vector2(500, 50);
     }
 
     @Override
     public void show() {
-        System.out.println("FirstScreen show");
         batch = new SpriteBatch();
         cellEmpty = new Texture("cellEmpty.png");
         cellShip = new Texture("cellShip.png");
@@ -44,6 +45,7 @@ public class BattleScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        update();
         if (client != null) {
             Board newBoardPlayer1 = client.getBoardPlayer1();
             if (newBoardPlayer1 != null && newBoardPlayer1 != boardPlayer1) {
@@ -63,6 +65,23 @@ public class BattleScreen implements Screen {
         }
 
         batch.end();
+        if(client.isGameOver()){
+            game.setScreen(new GameOverScreen(client, game));
+        }
+    }
+
+    private void update() {
+        if (Gdx.input.justTouched()) {
+            int x = Gdx.input.getX();
+            int y = Gdx.graphics.getHeight() - Gdx.input.getY();
+            if (x > position.x && x < position.x + 10 * 32
+                && y > position.y && y < position.y + 10 * 32) {
+                int cellX = (int) ((x - position.x) / 32);
+                int cellY = (int) ((y - position.y) / 32);
+
+                client.sendAttack(cellX, cellY);
+            }
+        }
     }
 
     private void drawMyBoard(SpriteBatch batch, Board board) {
@@ -100,6 +119,23 @@ public class BattleScreen implements Screen {
                 }
             }
         }
+
+//        Cell[][] cells = board.getCells();
+//        Texture currentTexture;
+//        if (cells != null) {
+//            for (int i = 0; i < 10; i++) {
+//                for (int j = 0; j < 10; j++) {
+//                    currentTexture = switch (cells[i][j]) {
+//                        case MISS -> cellMiss;
+//                        case HIT -> cellHit;
+//                        case HALO -> cellHalo;
+//                        case SHIP -> cellShip;
+//                        default -> cellEmpty;
+//                    };
+//                    batch.draw(currentTexture, 32 * i + 500, 32 * j + 50);
+//                }
+//            }
+//        }
     }
 
     private void drawEmptyBoard(SpriteBatch batch) {

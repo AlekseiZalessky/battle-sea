@@ -1,10 +1,12 @@
 package com.battlesea.server;
 
+import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
 import com.battlesea.model.Game;
 import com.battlesea.model.Message;
 import com.battlesea.model.Player;
+import com.battlesea.service.BattleService;
 import com.battlesea.service.GameService;
 import com.battlesea.service.ShipPlacementService;
 import com.google.gson.*;
@@ -21,6 +23,7 @@ public class ClientHandler {
     private final PrintWriter out;
     private final Gson gson;
     private Board playerBoard1;
+    private Game game;
 
     public ClientHandler(Socket socket, GameServer gameServer) throws Exception {
         this.socket = socket;
@@ -78,13 +81,53 @@ public class ClientHandler {
 
                     if("START_GAME_PVE".equals(message.getType())) {
                         GameService gameService = new GameService();
-                        Game game = gameService.startGame(player, playerBoard1, GameMode.PVE);
+                        game = gameService.startGame(player, playerBoard1, GameMode.PVE);
                         Message response = new Message();
                         response.setType("START_GAME_PVE_SUCCESS");
                         response.setGame(game);
 
                         String responseJson = gson.toJson(response);
                         out.println(responseJson);
+                    }
+
+                    if("SHOOT".equals(message.getType())) {
+                        System.out.println("SHOOT");
+                        int x = message.getX();
+                        int y = message.getY();
+                        BattleService battleService = new BattleService();
+                        game.setTurnPlayer(player);
+                        Cell resultShoot = battleService.shoot(game, x, y);
+                        System.out.println("resultShoot: " + resultShoot);
+                        game = battleService.getGame();
+
+                        Message response = new Message();
+                        response.setType("RESULT_SHOOT");
+                        response.setGame(game);
+                        response.setX(x);
+                        response.setY(y);
+                        if (resultShoot == null) {
+                            System.out.println("resultShoot1: " + resultShoot);
+
+                            String responseJson = gson.toJson(response);
+                            out.println(responseJson);
+                        } else {
+                            System.out.println("resultShoot2: " + resultShoot);
+                            response.setResultShoot(resultShoot);
+                            String responseJson = gson.toJson(response);
+                            out.println(responseJson);
+
+                            boolean gameOver = battleService.isGameOver();
+                            System.out.println("gameOver: " + gameOver);
+                            if(gameOver) {
+                                Message gameOverResponse = new Message();
+                                gameOverResponse.setType("GAME_OVER");
+                                String  gameOverResponseJson = gson.toJson(gameOverResponse);
+                                out.println(gameOverResponseJson);
+                            }
+                        }
+                        System.out.println(response);
+
+
                     }
                 }
             } catch (Exception e) {

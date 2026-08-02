@@ -11,7 +11,6 @@ public class Ship {
     private boolean isSunk;
     private final boolean horizontal;
     private final TypeShip type;
-    private boolean isHit;
     private final List<List<Integer>> coordinates = new ArrayList<>();
 
     public Ship(int x, int y, boolean horizontal, TypeShip type) {
@@ -23,10 +22,6 @@ public class Ship {
 
     public void setSunk(boolean sunk) {
         this.isSunk = sunk;
-    }
-
-    public void setHit(boolean hit) {
-        isHit = hit;
     }
 
     public void addCoordinates(List<Integer> coordinates) {
@@ -57,10 +52,6 @@ public class Ship {
         return coordinates;
     }
 
-    public boolean isHit() {
-        return isHit;
-    }
-
     @Override
     public String toString() {
         return "Ship{" +
@@ -69,7 +60,7 @@ public class Ship {
             ", isSunk=" + isSunk +
             ", horizontal=" + horizontal +
             ", type=" + type +
-            ", isHit=" + isHit +
+            ", coordinates=" + coordinates +
             '}';
     }
 }

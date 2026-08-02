@@ -1,14 +1,18 @@
 package com.battlesea.model;
 
+import com.battlesea.enums.Cell;
+
 public class Message {
     private String type;
     private String username;
     private int x;
     private int y;
-    private String response;
     private Board boardPlayer1;
     private Board boardPlayer2;
     private Game game;
+    private Cell resultShoot;
+    private Player turnPlayer;
+
 
     public Message() {
 
@@ -46,14 +50,6 @@ public class Message {
         this.y = y;
     }
 
-    public String getResponse() {
-        return response;
-    }
-
-    public void setResponse(String response) {
-        this.response = response;
-    }
-
     public Board getBoardPlayer1() {
         return boardPlayer1;
     }
@@ -78,6 +74,22 @@ public class Message {
         this.game = game;
     }
 
+    public Cell getResultShoot() {
+        return resultShoot;
+    }
+
+    public void setResultShoot(Cell resultShoot) {
+        this.resultShoot = resultShoot;
+    }
+
+    public Player getTurnPlayer() {
+        return turnPlayer;
+    }
+
+    public void setTurnPlayer(Player turnPlayer) {
+        this.turnPlayer = turnPlayer;
+    }
+
     @Override
     public String toString() {
         return "Message{" +
@@ -85,8 +97,11 @@ public class Message {
             ", username='" + username + '\'' +
             ", x=" + x +
             ", y=" + y +
-            ", response='" + response + '\'' +
-            ", board=" + boardPlayer1 +
+            ", boardPlayer1=" + boardPlayer1 +
+            ", boardPlayer2=" + boardPlayer2 +
+            ", game=" + game +
+            ", resultShoot=" + resultShoot +
+            ", turnPlayer=" + turnPlayer +
             '}';
     }
 }

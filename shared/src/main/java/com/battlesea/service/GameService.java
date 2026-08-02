@@ -36,6 +36,8 @@ public class GameService {
 //            currentPlayerBoard = shipPlacementService.generateRandomShips(currentPlayer);
             opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent);
 
+            board.printCells();
+            System.out.println();
             opponentPlayerBoard.printCells();
             System.out.println();
 
