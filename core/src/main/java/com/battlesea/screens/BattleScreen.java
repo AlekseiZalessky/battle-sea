@@ -14,8 +14,8 @@ import com.battlesea.model.Board;
 
 public class BattleScreen implements Screen {
     private final Client client;
-    private Board boardPlayer1;
-    private Board boardPlayer2;
+    private Board boardCreator;
+    private Board boardOpponent;
     private SpriteBatch batch;
     private Texture cellEmpty;
     private Texture cellShip;
@@ -47,24 +47,35 @@ public class BattleScreen implements Screen {
     public void render(float delta) {
         update();
         if (client != null) {
-            Board newBoardPlayer1 = client.getBoardPlayer1();
-            if (newBoardPlayer1 != null && newBoardPlayer1 != boardPlayer1) {
-                boardPlayer1 = newBoardPlayer1;
+            Board boardCurrentPlayer;
+            Board boardOpponentPlayer;
+            if(client.getCreatorPlayer().equals(client.getCurrentPlayer())){
+                boardCurrentPlayer = client.getBoardCreator();
+                boardOpponentPlayer = client.getBoardOpponent();
+            } else {
+                boardCurrentPlayer = client.getBoardOpponent();
+                boardOpponentPlayer = client.getBoardCreator();
             }
-            boardPlayer2 = client.getBoardPlayer2();
+
+            Board newBoardCurrentPlayer = boardCurrentPlayer;
+            if (newBoardCurrentPlayer != null && !newBoardCurrentPlayer.equals(boardCreator)) {
+                boardCreator = newBoardCurrentPlayer;
+            }
+            boardOpponent = boardOpponentPlayer;
         }
 
         batch.begin();
 
-        drawMyBoard(batch, boardPlayer1);
-        drawEmptyBoard(batch);
-        if (boardPlayer2 != null) {
-            drawOpponentBoard(batch, boardPlayer2);
+        drawMyBoard(batch, boardCreator);
+
+        if (boardOpponent != null) {
+            drawOpponentBoard(batch, boardOpponent);
         } else {
             drawEmptyBoard(batch);
         }
 
         batch.end();
+
         if(client.isGameOver()){
             game.setScreen(new GameOverScreen(client, game));
         }

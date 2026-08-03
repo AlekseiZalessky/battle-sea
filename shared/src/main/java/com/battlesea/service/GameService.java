@@ -31,28 +31,30 @@ public class GameService {
         Board opponentPlayerBoard = null;
         if (gameMode == com.battlesea.enums.GameMode.PVE) {
             opponent = new Player("Computer");
-            game = new Game(player, opponent, gameMode);
+            game = new Game(player, board, opponent, gameMode);
             opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent);
-            game.setBoardPlayer2(opponentPlayerBoard);
+            game.setBoardOpponent(opponentPlayerBoard);
         }
 
         if (gameMode == GameMode.PVP_ONLINE) {
             if (createdGames.isEmpty()) {
                 System.out.println("sozdanie novoi igri");
-                game = new Game(player, gameMode);
+                game = new Game(player, board, gameMode);
                 createdGames.add(game);
                 game.setGameStatus(GameStatus.CREATED);
-                game.setBoardPlayer1(board);
+                game.setBoardCreator(board);
 //                waitOpponent(game);
 //                System.out.println("opponent connected");
 //                game.setPlayer2(opponent);
+                System.out.println("sozdana igra: " + game);
 
             } else {
                 game = createdGames.getFirst();
-                System.out.println("podkluchenie k igre: " + game);
+                System.out.println();
                 createdGames.remove(game);
-                game.setPlayer2(player);
-                game.setBoardPlayer2(board);
+                game.setOpponent(player);
+                game.setBoardOpponent(board);
+                System.out.println("igrok: " + player + " podkluchilsya k igre: " + game);
             }
         }
 
@@ -68,18 +70,9 @@ public class GameService {
         return game;
     }
 
-    private void waitOpponent(Game game) {
-        while (game.getBoardPlayer2() == null) {
-            try {
-                System.out.println("waiting for opponent to start");
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+    public void deleteGameFromCreatedGames(Game game) {
+        System.out.println(createdGames);
+        createdGames.remove(game);
+        System.out.println(createdGames);
     }
-
-//    private Player findOpponent() {
-//
-//    }
 }

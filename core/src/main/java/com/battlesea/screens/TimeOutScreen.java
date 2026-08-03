@@ -18,26 +18,25 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.battlesea.Client.Client;
 import com.battlesea.Main;
-import com.battlesea.model.Game;
-import com.battlesea.model.Player;
+import com.battlesea.enums.GameMode;
 
-public class GameOverScreen implements Screen {
-    private Main game;
-    private Client client;
-    private Player winner;
+public class TimeOutScreen implements Screen {
+    private final Client client;
+    private final Main game;
+    private final GameMode gameMode;
+
+    private Stage stage;
     private OrthographicCamera camera;
     private SpriteBatch batch;
     private BitmapFont font;
-
     private TextButton menuButton;
-    private Stage stage;
 
-
-    public GameOverScreen(Client client, Main game) {
+    public TimeOutScreen(Client client, Main game, GameMode gameMode) {
         this.client = client;
         this.game = game;
-        this.winner = client.winner();
+        this.gameMode = gameMode;
     }
+
     @Override
     public void show() {
         camera = new OrthographicCamera();
@@ -112,46 +111,51 @@ public class GameOverScreen implements Screen {
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
+        // Рисуем текст через batch
         batch.begin();
-
-        String text;
-        if(client.getCurrentPlayer().equals(winner)) {
-            text = "You won!";
-        } else {
-            text = "You lost!";
-        }
-
+        String text = "TIMEOUT!";
         float textWidth = font.getData().scaleX * text.length() * 20;
         float x = (Gdx.graphics.getWidth() - textWidth) / 2;
-        float y = Gdx.graphics.getHeight() / 2f;
-
+        float y = Gdx.graphics.getHeight() / 2f + 50;
         font.draw(batch, text, x, y);
-        stage.draw();
         batch.end();
+
+        // Обновляем и рисуем Stage (кнопки)
+        stage.act(delta);
+        stage.draw();
     }
 
     @Override
     public void resize(int width, int height) {
-
+        stage.getViewport().update(width, height, true);
+        camera.setToOrtho(false, width, height);
     }
 
     @Override
-    public void pause() {
-
-    }
+    public void pause() {}
 
     @Override
-    public void resume() {
-
-    }
+    public void resume() {}
 
     @Override
-    public void hide() {
-
-    }
+    public void hide() {}
 
     @Override
     public void dispose() {
-
+        if (stage != null) {
+            stage.dispose();
+            stage = null;
+        }
+        if (font != null) {
+            font.dispose();
+            font = null;
+        }
+        if (batch != null) {
+            batch.dispose();
+            batch = null;
+        }
+        if (camera != null) {
+            camera = null;
+        }
     }
 }

@@ -99,6 +99,7 @@ public class PlacementScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("click auto");
+                timeout(200);
                 client.sendMessage("PVE_AUTO");
             }
         });
@@ -114,11 +115,15 @@ public class PlacementScreen implements Screen {
                 if (!startGame.isDisabled()) {
                     System.out.println("click start");
 
+
                     if(gameMode == GameMode.PVE) {
                         client.sendMessage("START_GAME_PVE");
+                        timeout(1000);
+
                         game.setScreen(new BattleScreen(client, game, gameMode));
                     } else  {
                         client.sendMessage("START_GAME_PVP_ONLINE");
+                        timeout(1000);
                         game.setScreen(new WaitingStartBattleScreen(client, game, gameMode));
                     }
                 }
@@ -127,13 +132,21 @@ public class PlacementScreen implements Screen {
         stage.addActor(startGame);
     }
 
+    private static void timeout(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.2f, 0.2f, 0.3f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (client != null) {
-            Board newBoard = client.getBoardPlayer1();
+            Board newBoard = client.getBoardCreator();
             if (newBoard != null) {
                 boardPlayer1 = newBoard;
                 if (!boardPlayer1.getShips().isEmpty()) {

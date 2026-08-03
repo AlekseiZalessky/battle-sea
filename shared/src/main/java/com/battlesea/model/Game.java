@@ -8,39 +8,41 @@ import java.util.UUID;
 
 public class Game {
     private final UUID id;
-    private final Player player1;
-    private Player player2;
+    private final Player creator;
+    private Player opponent;
     private final LocalDateTime creationTime;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private GameMode gameMode;
     private GameStatus gameStatus;
-    private Board boardPlayer1;
-    private Board boardPlayer2;
+    private Board boardCreator;
+    private Board boardOpponent;
     private Player turnPlayer;
+    private Player winner;
 
-    public Game(Player player1, Player player2, GameMode gameMode) {
+    public Game(Player creator, Board boardCreator, Player opponent, GameMode gameMode) {
         this.id = UUID.randomUUID();
-        this.player1 = player1;
-        this.player2 = player2;
+        this.creator = creator;
+        this.boardCreator = boardCreator;
+        this.opponent = opponent;
         this.creationTime = LocalDateTime.now();
         this.gameMode = gameMode;
     }
 
-    public Game(Player player1, GameMode gameMode) {
-        this(player1, null, gameMode);
+    public Game(Player creator, Board board, GameMode gameMode) {
+        this(creator, board, null, gameMode);
     }
 
     public UUID getId() {
         return id;
     }
 
-    public Player getPlayer1() {
-        return player1;
+    public Player getCreator() {
+        return creator;
     }
 
-    public Player getPlayer2() {
-        return player2;
+    public Player getOpponent() {
+        return opponent;
     }
 
     public LocalDateTime getStartTime() {
@@ -63,8 +65,8 @@ public class Game {
         this.gameMode = gameMode;
     }
 
-    public void setPlayer2(Player player2) {
-        this.player2 = player2;
+    public void setOpponent(Player opponent) {
+        this.opponent = opponent;
     }
 
     public void setStartTime(LocalDateTime startTime) {
@@ -79,20 +81,20 @@ public class Game {
         this.gameStatus = gameStatus;
     }
 
-    public Board getBoardPlayer1() {
-        return boardPlayer1;
+    public Board getBoardCreator() {
+        return boardCreator;
     }
 
-    public void setBoardPlayer1(Board boardPlayer1) {
-        this.boardPlayer1 = boardPlayer1;
+    public void setBoardCreator(Board boardCreator) {
+        this.boardCreator = boardCreator;
     }
 
-    public Board getBoardPlayer2() {
-        return boardPlayer2;
+    public Board getBoardOpponent() {
+        return boardOpponent;
     }
 
-    public void setBoardPlayer2(Board boardPlayer2) {
-        this.boardPlayer2 = boardPlayer2;
+    public void setBoardOpponent(Board boardOpponent) {
+        this.boardOpponent = boardOpponent;
     }
 
     public Player getTurnPlayer() {
@@ -103,19 +105,29 @@ public class Game {
         this.turnPlayer = turnPlayer;
     }
 
+    public Player getWinner() {
+        return winner;
+    }
+
+    public void setWinner(Player winner) {
+        this.winner = winner;
+    }
+
     @Override
     public String toString() {
         return "Game{" +
             "id=" + id +
-            ", player1=" + player1 +
-            ", player2=" + player2 +
+            ", creator=" + creator +
+            ", opponent=" + opponent +
             ", creationTime=" + creationTime +
             ", startTime=" + startTime +
             ", endTime=" + endTime +
             ", gameMode=" + gameMode +
             ", gameStatus=" + gameStatus +
-            ", boardPlayer1=" + boardPlayer1 +
-            ", boardPlayer2=" + boardPlayer2 +
+            ", boardCreator=" + boardCreator +
+            ", boardOpponent=" + boardOpponent +
+            ", turnPlayer=" + turnPlayer +
+            ", winner=" + winner +
             '}';
     }
 }

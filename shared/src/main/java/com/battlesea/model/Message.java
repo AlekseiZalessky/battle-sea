@@ -12,6 +12,8 @@ public class Message {
     private Game game;
     private Cell resultShoot;
     private Player turnPlayer;
+    private Player creator;
+    private Player opponent;
 
 
     public Message() {
@@ -90,6 +92,22 @@ public class Message {
         this.turnPlayer = turnPlayer;
     }
 
+    public Player getCreator() {
+        return creator;
+    }
+
+    public void setCreator(Player creator) {
+        this.creator = creator;
+    }
+
+    public Player getOpponent() {
+        return opponent;
+    }
+
+    public void setOpponent(Player opponent) {
+        this.opponent = opponent;
+    }
+
     @Override
     public String toString() {
         return "Message{" +
@@ -102,6 +120,8 @@ public class Message {
             ", game=" + game +
             ", resultShoot=" + resultShoot +
             ", turnPlayer=" + turnPlayer +
+            ", creator=" + creator +
+            ", opponent=" + opponent +
             '}';
     }
 }

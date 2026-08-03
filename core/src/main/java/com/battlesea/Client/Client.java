@@ -18,13 +18,16 @@ public class Client {
     private final BufferedReader in;
     private final PrintWriter out;
     private final Gson gson;
-    private Board boardPlayer1;
-    private Board boardPlayer2;
+    private Board boardCreator;
+    private Board boardOpponent;
     private Game game;
     private boolean resultShoot;
     private boolean gameOver;
     private Player currnetPlayer;
+    private Player creator;
+    private Player opponent;
     private boolean isStartingGame;
+    private boolean timeOut;
 
     public Client(String host, int port) throws Exception {
         this.socket = new Socket(host, port);
@@ -70,20 +73,25 @@ public class Client {
                     }
                     Message message = gson.fromJson(json, Message.class);
                     if ("PVE_SUCCESS".equals(message.getType())) {
-                        boardPlayer1 = message.getBoardPlayer1();
+                        currnetPlayer = message.getCreator();
+                        boardCreator = message.getBoardPlayer1();
+                        opponent = message.getOpponent();
                         continue;
                     }
 
                     if("START_GAME_PVE_SUCCESS".equals(message.getType())) {
+                        System.out.println("START_GAME_PVE_SUCCESS");
+                        System.out.println("message: " + message);
                         game = message.getGame();
-                        boardPlayer2 = game.getBoardPlayer2();
+                        update(game);
                         continue;
                     }
 
                     if("START_GAME_PVP_ONLINE_SUCCESS".equals(message.getType())) {
                         System.out.println("START_GAME_PVP_ONLINE_SUCCESS");
                         game = message.getGame();
-                        boardPlayer2 = game.getBoardPlayer2();
+                        System.out.println("poluchili igru: " + game);
+                        update(game);
                         isStartingGame = true;
                         continue;
                     }
@@ -95,15 +103,22 @@ public class Client {
                         }
                         resultShoot = result != null;
                         game = message.getGame();
-
-                        Cell[][] cell = game.getBoardPlayer2().getCells();
-                        boardPlayer2.setCells(cell);
-                        cell[message.getX()][message.getY()] = result;
+                        update(game);
+                        continue;
                     }
 
                     if("GAME_OVER".equals(message.getType())) {
+                        Thread.sleep(2000);
                         System.out.println("GAME_OVER");
+                        game = message.getGame();
+                        update(game);
+                        System.out.println(game);
                         gameOver = true;
+                    }
+
+                    if("TIMEOUT".equals(message.getType())) {
+                        timeOut = true;
+                        System.out.println("TIMEOUT");
                     }
                 }
             } catch (Exception e) {
@@ -112,12 +127,20 @@ public class Client {
         }).start();
     }
 
-    public Board getBoardPlayer1() {
-        return boardPlayer1;
+    private void update(Game game) {
+        creator = game.getCreator();
+        opponent = game.getOpponent();
+        boardCreator = game.getBoardCreator();
+        boardOpponent = game.getBoardOpponent();
+
     }
 
-    public Board getBoardPlayer2() {
-        return boardPlayer2;
+    public Board getBoardCreator() {
+        return boardCreator;
+    }
+
+    public Board getBoardOpponent() {
+        return boardOpponent;
     }
 
     public boolean isResultShoot() {
@@ -130,6 +153,26 @@ public class Client {
 
     public boolean isStartingGame() {
         return isStartingGame;
+    }
+
+    public Player getCreatorPlayer(){
+        return creator;
+    }
+
+    public Player getOpponentPlayer(){
+        return opponent;
+    }
+
+    public Player getCurrentPlayer(){
+        return currnetPlayer;
+    }
+
+    public boolean isTimeOut() {
+        return timeOut;
+    }
+
+    public Player winner(){
+        return game.getWinner();
     }
 
     public Game getGame() {

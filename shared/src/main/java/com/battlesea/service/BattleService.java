@@ -22,8 +22,8 @@ public class BattleService {
             throw new NullPointerException("Game is null");
         }
         this.game = game;
-        boardPlayer1 = game.getBoardPlayer1();
-        boardPlayer2 = game.getBoardPlayer2();
+        this.boardPlayer1 = game.getBoardCreator();
+        this.boardPlayer2 = game.getBoardOpponent();
     }
 
     public Cell shoot(Game game, int x, int y) {
@@ -35,10 +35,10 @@ public class BattleService {
         if (turnPlayer == null) {
             throw new NullPointerException("Turn player is null");
         }
-        if (turnPlayer == game.getPlayer1()) {
-            targetBoard = game.getBoardPlayer2();
+        if (turnPlayer == game.getCreator()) {
+            targetBoard = game.getBoardOpponent();
         } else {
-            targetBoard = game.getBoardPlayer1();
+            targetBoard = game.getBoardCreator();
         }
 
         Cell[][] cells = targetBoard.getCells();
@@ -161,5 +161,13 @@ public class BattleService {
 
     public Game getGame() {
         return game;
+    }
+
+    public void winner(Game game){
+        if(game.getTurnPlayer() == game.getCreator()){
+            game.setWinner(game.getCreator());
+        } else {
+            game.setWinner(game.getOpponent());
+        }
     }
 }

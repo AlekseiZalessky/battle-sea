@@ -42,6 +42,9 @@ public class WaitingStartBattleScreen implements Screen {
         if(client.isStartingGame()){
             game.setScreen(new BattleScreen(client, game, gameMode));
         }
+        if(client.isTimeOut()){
+            game.setScreen(new TimeOutScreen(client, game, gameMode));
+        }
         ScreenUtils.clear(0, 0, 0.2f, 1);
 
         camera.update();
