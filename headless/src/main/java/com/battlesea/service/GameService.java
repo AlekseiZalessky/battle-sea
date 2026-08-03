@@ -1,6 +1,5 @@
 package com.battlesea.service;
 
-
 import com.battlesea.enums.GameMode;
 import com.battlesea.enums.GameStatus;
 import com.battlesea.model.Board;
@@ -21,10 +20,6 @@ public class GameService {
         battleService = new BattleService();
     }
 
-//    public void selectGameMode(Player player) {
-//
-//    }
-
     public Game startGame(Player player, Board board, GameMode gameMode) {
         Game game = null;
         Player opponent = null;
@@ -43,9 +38,6 @@ public class GameService {
                 createdGames.add(game);
                 game.setGameStatus(GameStatus.CREATED);
                 game.setBoardCreator(board);
-//                waitOpponent(game);
-//                System.out.println("opponent connected");
-//                game.setPlayer2(opponent);
                 System.out.println("sozdana igra: " + game);
 
             } else {
@@ -58,7 +50,7 @@ public class GameService {
             }
         }
 
-        if(game == null){
+        if (game == null) {
             return null;
         }
 

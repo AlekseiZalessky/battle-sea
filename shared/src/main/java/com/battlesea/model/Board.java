@@ -24,15 +24,6 @@ public class Board {
         }
     }
 
-    public boolean isGameOver() {
-        for (Ship ship : ships) {
-            if (!ship.isSunk()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public void printCells() {
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE; y++) {
@@ -48,9 +39,6 @@ public class Board {
                         break;
                     case SHIP:
                         System.out.print("\u001B[34m" + cells[x][y] + " \u001B[0m");
-                        break;
-                    case SUNK:
-                        System.out.print("\u001B[31m" + cells[x][y] + " \u001B[0m");
                         break;
                     case HALO:
                         System.out.print("\u001B[33m" + cells[x][y] + " \u001B[0m");
