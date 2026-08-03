@@ -12,13 +12,13 @@ import com.battlesea.model.Ship;
 public class ShipPlacementService {
     private Random random = new Random();
     private final int SIZE = Board.SIZE;
-    private List<List<Integer>> freeCoordinates = new ArrayList<>();
+    private List<Coordinate> freeCoordinates = new ArrayList<>();
     private List<Ship> ships = new ArrayList<>();
 
     {
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                freeCoordinates.add(List.of(i, j));
+                freeCoordinates.add(new Coordinate(i, j));
             }
         }
     }
@@ -49,10 +49,10 @@ public class ShipPlacementService {
     }
 
     private boolean placeShip(Cell[][] cells, TypeShip type, int sizeShip) {
-        List<Integer> nextCoordinate = freeCoordinates.get(random.nextInt(freeCoordinates.size()));
+        Coordinate nextCoordinate = freeCoordinates.get(random.nextInt(freeCoordinates.size()));
 
-        int x = nextCoordinate.get(0);
-        int y = nextCoordinate.get(1);
+        int x = nextCoordinate.x();
+        int y = nextCoordinate.y();
         boolean horizontal = random.nextBoolean();
 
         if (!canPlaceShip(cells, horizontal, x, y, sizeShip)) {
@@ -92,10 +92,7 @@ public class ShipPlacementService {
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE; y++) {
                 if (cells[x][y] == Cell.SHIP || cells[x][y] == Cell.HALO) {
-                    List<Integer> coorForDel = new ArrayList<>();
-                    coorForDel.add(x);
-                    coorForDel.add(y);
-                    freeCoordinates.remove(coorForDel);
+                    freeCoordinates.remove(new Coordinate(x, y));
                 }
             }
         }
