@@ -2,10 +2,7 @@ package com.battlesea.service;
 
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.TypeShip;
-import com.battlesea.model.Board;
-import com.battlesea.model.Game;
-import com.battlesea.model.Player;
-import com.battlesea.model.Ship;
+import com.battlesea.model.*;
 
 import java.util.List;
 
@@ -74,11 +71,11 @@ public class BattleService {
         }
         boolean isSunk = true;
 
-        List<List<Integer>> coordinates = ship.getCoordinates();
+        List<Coordinate> coordinates = ship.getCoordinates();
 
-        for (List<Integer> coordinate : coordinates) {
-            int coorX = coordinate.get(0);
-            int coorY = coordinate.get(1);
+        for (Coordinate coordinate : coordinates) {
+            int coorX = coordinate.x();
+            int coorY = coordinate.y();
             if (cells[coorX][coorY] == Cell.SHIP) {
                 isSunk = false;
                 break;
@@ -110,10 +107,10 @@ public class BattleService {
     private Ship getShip(int x, int y) {
         List<Ship> ships = targetBoard.getShips();
         for (Ship ship : ships) {
-            List<List<Integer>> coordinates = ship.getCoordinates();
+            List<Coordinate> coordinates = ship.getCoordinates();
 
-            for (List<Integer> coordinate : coordinates) {
-                if (coordinate.get(0) == x && coordinate.get(1) == y) {
+            for (Coordinate coordinate : coordinates) {
+                if (coordinate.x() == x && coordinate.y() == y) {
                     return ship;
                 }
             }
@@ -131,10 +128,10 @@ public class BattleService {
             return;
         }
         if (isSunk) {
-            List<List<Integer>> coordinates = ship.getCoordinates();
-            for (List<Integer> coordinate : coordinates) {
-                int coorX = coordinate.get(0);
-                int coorY = coordinate.get(1);
+            List<Coordinate> coordinates = ship.getCoordinates();
+            for (Coordinate coordinate : coordinates) {
+                int coorX = coordinate.x();
+                int coorY = coordinate.y();
 
                 addHaloAroundCell(coorX, coorY, true, cells);
             }

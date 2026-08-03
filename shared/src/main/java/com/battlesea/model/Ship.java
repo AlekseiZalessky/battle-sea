@@ -11,7 +11,7 @@ public class Ship {
     private boolean isSunk;
     private final boolean horizontal;
     private final TypeShip type;
-    private final List<List<Integer>> coordinates = new ArrayList<>();
+    private final List<Coordinate> coordinates = new ArrayList<>();
 
     public Ship(int x, int y, boolean horizontal, TypeShip type) {
         this.x = x;
@@ -24,7 +24,7 @@ public class Ship {
         this.isSunk = sunk;
     }
 
-    public void addCoordinates(List<Integer> coordinates) {
+    public void addCoordinates(Coordinate coordinates) {
         this.coordinates.add(coordinates);
     }
 
@@ -48,7 +48,7 @@ public class Ship {
         return type;
     }
 
-    public List<List<Integer>> getCoordinates() {
+    public List<Coordinate> getCoordinates() {
         return coordinates;
     }
 

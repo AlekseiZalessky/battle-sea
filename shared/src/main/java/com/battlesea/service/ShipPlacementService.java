@@ -5,6 +5,7 @@ import java.util.*;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.TypeShip;
 import com.battlesea.model.Board;
+import com.battlesea.model.Coordinate;
 import com.battlesea.model.Player;
 import com.battlesea.model.Ship;
 
@@ -62,10 +63,10 @@ public class ShipPlacementService {
         for (int i = 0; i < sizeShip; i++) {
             if (horizontal) {
                 cells[x + i][y] = Cell.SHIP;
-                ship.addCoordinates(List.of(x + i, y));
+                ship.addCoordinates(new Coordinate(x + i, y));
             } else {
                 cells[x][y + i] = Cell.SHIP;
-                ship.addCoordinates(List.of(x, y + i));
+                ship.addCoordinates(new Coordinate(x, y + i));
             }
         }
 
