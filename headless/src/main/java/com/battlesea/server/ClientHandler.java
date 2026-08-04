@@ -47,7 +47,7 @@ public class ClientHandler {
                     LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
             .create();
 
-        log.debug("polucheno podkluchenie");
+        log.debug("Player connected to server");
         String json;
 
         Player player;
@@ -111,10 +111,10 @@ public class ClientHandler {
                     int waitingTime = 0;
                     int maxWaitingTime = 60000;
                     while (true) {
-                        System.out.println("waiting time: " + waitingTime);
                         if (waitingTime >= maxWaitingTime) {
                             gameService.deleteGameFromCreatedGames(game);
                             response.setType("TIMEOUT");
+                            log.info("TIMEOUT");
                             out.println(gson.toJson(response));
                             break;
                         }
@@ -133,6 +133,7 @@ public class ClientHandler {
                 }
 
                 if ("SHOOT".equals(input.getType())) {
+                    log.debug("SHOOT");
                     Message response = new Message();
                     int x = input.getX();
                     int y = input.getY();
@@ -162,12 +163,14 @@ public class ClientHandler {
                 }
 
                 if (turnAI) {
+                    log.debug("TurnAI={}", turnAI);
                     while (turnAI) {
-                        Thread.sleep(1000);
+                        log.debug("ClientHandler    start move ai");
                         aiService = gameSession.getAiService();
                         Coordinate coordinate = aiService.chooseCoordinate();
-                        aiService.removeCoordinate(coordinate);
+                        log.debug("ClientHandler    coordinate: {}", coordinate);
                         Cell resultShoot = battleService.shoot(game, coordinate);
+                        log.debug("ClientHandler   resultShoot: {}", resultShoot );
                         if (resultShoot == Cell.MISS) {
                             turnAI = false;
                         }
@@ -175,12 +178,13 @@ public class ClientHandler {
                             if (aiService.isHasHit()) {
                                 aiService.setOrientation(coordinate);
                             }
-                            aiService.setHasHit(true);
+
                             if (!aiService.isHasHit()) {
                                 aiService.setCoordinateHit(coordinate);
                             }
-
+                            aiService.setHasHit(true);
                         }
+                        aiService.removeCoordinate(coordinate);
                         Message response = new Message();
                         response.setType("RESULT_SHOOT");
                         response.setGame(game);
@@ -197,14 +201,14 @@ public class ClientHandler {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error in ClientHandler: {}", e.getMessage(), e);
         }
     }
 
     private void isGameOver(GameServer gameServer) {
         boolean gameOver = battleService.isGameOver();
         if (gameOver) {
-            System.out.println("GAME OVER");
+            log.info("Game Over");
             battleService.winner(game);
             System.out.println(game);
             Message response = new Message();

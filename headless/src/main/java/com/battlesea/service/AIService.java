@@ -46,15 +46,14 @@ public class AIService {
         if (!hasHit) {
             log.debug("hasHit false");
             coordinateForNextShoot = randomCoordinate(coorForMoveAI);
-            log.debug("hasHit false, coordinateForNextShoot: {}", coordinateForNextShoot);
             return coordinateForNextShoot;
         }
 
         int x = coordinateHit.x();
         int y = coordinateHit.y();
         List<Coordinate> coordinatesForNextShoot = new ArrayList<>();
+
         if (!hasOrientation) {
-            log.debug("hasOrientation false");
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
                     if (Math.abs(dx) == 1 && Math.abs(dy) == 1) {
@@ -63,14 +62,10 @@ public class AIService {
 
                     int newX = x + dx;
                     int newY = y + dy;
-                    log.debug("newX: {}, newY: {}", newX, newY);
                     if (x == newX && y == newY) {
-                        log.debug("x == newX && y == newY");
                         continue;
                     }
-                    log.debug("validateCoordinate(newX, newY) = {}", validateCoordinate(newX, newY));
                     if (validateCoordinate(newX, newY) && (cells[newX][newY] == Cell.EMPTY || cells[newX][newY] == Cell.SHIP)) {
-                        log.debug("cells[newX][newY] == {}", cells[newX][newY]);
                         coordinatesForNextShoot.add(new Coordinate(newX, newY));
                     }
                 }
@@ -79,9 +74,7 @@ public class AIService {
             return coordinateForNextShoot;
         } else {
             log.debug("hasOrientation true");
-            log.debug("coordinatesForNextShoot: {}", coordinatesForNextShoot);
             checkCoordinate(coordinatesForNextShoot);
-            log.debug("coordinatesForNextShoot: {}", coordinatesForNextShoot);
             coordinateForNextShoot = randomCoordinate(coordinatesForNextShoot);
             log.debug("coordinateForNextShoot: {}", coordinateForNextShoot);
             return coordinateForNextShoot;
@@ -93,10 +86,9 @@ public class AIService {
 
         int x = coordinateHit.x();
         int y = coordinateHit.y();
+        boolean flag = false;
 
-        log.debug("checkCoordinate  x: {}, y: {}", x, y);
-
-        while (true) {
+        while (!flag) {
             if (isHorizontal) {
                 x--;
             } else {
@@ -109,19 +101,22 @@ public class AIService {
                 case EMPTY:
                 case SHIP:
                     coordinatesForNextShoot.add(new Coordinate(x, y));
+                    flag = true;
                     break;
                 case HIT:
                     continue;
                 case MISS:
                 case HALO:
+                    flag = true;
                     break;
             }
         }
 
         x = coordinateHit.x();
         y = coordinateHit.y();
+        flag = false;
 
-        while (true) {
+        while (!flag) {
             if (isHorizontal) {
                 x++;
             } else {
@@ -134,19 +129,21 @@ public class AIService {
                 case EMPTY:
                 case SHIP:
                     coordinatesForNextShoot.add(new Coordinate(x, y));
+                    flag = true;
                     break;
                 case HIT:
                     continue;
                 case MISS:
                 case HALO:
+                    flag = true;
                     break;
             }
         }
     }
 
     private Coordinate randomCoordinate(List<Coordinate> coordinates) {
-        if (coordinates.isEmpty()) {
-            return null;
+        if (coordinates == null || coordinates.isEmpty()) {
+            throw new IllegalArgumentException("Invalid list of coordinates");
         }
         log.debug("List coordinates: {}", coordinates);
 
@@ -154,13 +151,13 @@ public class AIService {
     }
 
     private boolean validateCoordinate(int x, int y) {
-        log.debug("Validating coordinate x: {}, y: {}", x, y);
         return x >= 0 && y >= 0 && x < SIZE_BOARD && y < SIZE_BOARD;
     }
 
     public void removeCoordinate(Coordinate coordinate) {
-        log.debug("Removing coordinate: {}", coordinate);
-        log.debug("coorForMoveAI.size: {}", coorForMoveAI.size());
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Invalid coordinate");
+        }
         coorForMoveAI.remove(coordinate);
     }
 
@@ -169,6 +166,9 @@ public class AIService {
     }
 
     public void setCoordinateHit(Coordinate coordinateHit) {
+        if (coordinateHit == null) {
+            throw new IllegalArgumentException("Invalid coordinate");
+        }
         this.coordinateHit = coordinateHit;
     }
 
@@ -177,7 +177,9 @@ public class AIService {
     }
 
     private Ship getShip(Coordinate coordinate) {
-        log.debug("Getting ship: {}", coordinate);
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Invalid coordinate");
+        }
         List<Ship> ships = targetBoard.getShips();
         for (Ship ship : ships) {
             if (ship.getCoordinates().contains(coordinate)) {
@@ -190,7 +192,13 @@ public class AIService {
     }
 
     public void setOrientation(Coordinate coordinate) {
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Invalid coordinate");
+        }
         Ship ship = getShip(coordinate);
+        if (ship == null) {
+            throw new NullPointerException("Ship not found");
+        }
         if (ship.getType() == TypeShip.OneDeckShip) {
             return;
         }
@@ -199,15 +207,18 @@ public class AIService {
     }
 
     public boolean isSunk(Coordinate coordinate) {
-        log.debug("Checking isSunk");
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Invalid coordinate");
+        }
         Ship ship = getShip(coordinate);
-        if(ship.getType() == TypeShip.OneDeckShip) {
+        if (ship == null) {
+            throw new NullPointerException("Ship not found");
+        }
+        if (ship.getType() == TypeShip.OneDeckShip) {
             log.debug("Found ship is sunk: {}", ship);
             return true;
         }
-        if(ship.isSunk()){
-            log.debug("Ship is Sunk");
-            log.debug("Updating...");
+        if (ship.isSunk()) {
             update();
             return true;
         }

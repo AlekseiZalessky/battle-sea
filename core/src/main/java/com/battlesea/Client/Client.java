@@ -1,11 +1,14 @@
 package com.battlesea.Client;
 
 import com.battlesea.enums.Cell;
+import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
 import com.battlesea.model.Game;
 import com.battlesea.model.Message;
 import com.battlesea.model.Player;
 import com.google.gson.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
@@ -21,13 +24,13 @@ public class Client {
     private Board boardCreator;
     private Board boardOpponent;
     private Game game;
-    private boolean resultShoot;
     private boolean gameOver;
     private Player currnetPlayer;
     private Player creator;
     private Player opponent;
     private boolean isStartingGame;
     private boolean timeOut;
+    private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     public Client(String host, int port) throws Exception {
         this.socket = new Socket(host, port);
@@ -61,68 +64,71 @@ public class Client {
 
                     if ("AUTH_SUCCESS".equals(message.getType())) {
                         currnetPlayer = message.getCurrentPlayer();
-                        System.out.println("AUTH_SUCCESS");
+                        log.info("AUTH_SUCCESS");
+                        log.info("Current Player : {}", currnetPlayer.getName());
                         break;
                     }
                 }
 
-                while(true){
+                while (true) {
                     String json = in.readLine();
+                    log.debug("Получено сообщение: {}", json);
                     if (json == null) {
                         break;
                     }
                     Message message = gson.fromJson(json, Message.class);
                     if ("PVE_SUCCESS".equals(message.getType())) {
-//                        currnetPlayer = message.getCreator();
+                        log.info("PVE_SUCCESS");
                         boardCreator = message.getBoardPlayer1();
                         opponent = message.getOpponent();
                         continue;
                     }
 
-                    if("START_GAME_PVE_SUCCESS".equals(message.getType())) {
-                        System.out.println("START_GAME_PVE_SUCCESS");
-                        System.out.println("message: " + message);
+                    if ("START_GAME_PVE_SUCCESS".equals(message.getType())) {
+                        log.info("START_GAME_PVE_SUCCESS");
                         game = message.getGame();
                         update(game);
                         continue;
                     }
 
-                    if("START_GAME_PVP_ONLINE_SUCCESS".equals(message.getType())) {
-                        System.out.println("START_GAME_PVP_ONLINE_SUCCESS");
+                    if ("START_GAME_PVP_ONLINE_SUCCESS".equals(message.getType())) {
+                        log.info("START_GAME_PVP_ONLINE_SUCCESS");
                         game = message.getGame();
-                        System.out.println("poluchili igru: " + game);
                         update(game);
                         isStartingGame = true;
                         continue;
                     }
 
-                    if("RESULT_SHOOT".equals(message.getType())) {
+                    if ("RESULT_SHOOT".equals(message.getType())) {
+                        if(game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())){
+                            Thread.sleep(500);
+                        }
                         Cell result = message.getResultShoot();
-                        if(result == null){
+                        if (result == null) {
                             continue;
                         }
-                        resultShoot = result != null;
+
                         game = message.getGame();
                         update(game);
                         continue;
                     }
 
-                    if("GAME_OVER".equals(message.getType())) {
+                    if ("GAME_OVER".equals(message.getType())) {
                         Thread.sleep(2000);
-                        System.out.println("GAME_OVER");
+                        log.info("GAME_OVER");
                         game = message.getGame();
                         update(game);
                         System.out.println(game);
                         gameOver = true;
                     }
 
-                    if("TIMEOUT".equals(message.getType())) {
+                    if ("TIMEOUT".equals(message.getType())) {
                         timeOut = true;
-                        System.out.println("TIMEOUT");
+                        log.info("TIMEOUT");
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error in Client: {}", e.getMessage(), e);
             }
         }).start();
     }
@@ -143,10 +149,6 @@ public class Client {
         return boardOpponent;
     }
 
-    public boolean isResultShoot() {
-        return resultShoot;
-    }
-
     public boolean isGameOver() {
         return gameOver;
     }
@@ -155,15 +157,15 @@ public class Client {
         return isStartingGame;
     }
 
-    public Player getCreatorPlayer(){
+    public Player getCreatorPlayer() {
         return creator;
     }
 
-    public Player getOpponentPlayer(){
+    public Player getOpponentPlayer() {
         return opponent;
     }
 
-    public Player getCurrentPlayer(){
+    public Player getCurrentPlayer() {
         return currnetPlayer;
     }
 
@@ -171,7 +173,7 @@ public class Client {
         return timeOut;
     }
 
-    public Player winner(){
+    public Player winner() {
         return game.getWinner();
     }
 
@@ -191,13 +193,13 @@ public class Client {
 //        out.println(gson.toJson(message));
 //    }
 
-    public void sendMessage(String type){
+    public void sendMessage(String type) {
         Message message = new Message();
         message.setType(type);
         out.println(gson.toJson(message));
     }
 
-    public void sendAttack(int x, int y){
+    public void sendAttack(int x, int y) {
         Message message = new Message();
         message.setType("SHOOT");
         message.setX(x);
@@ -206,7 +208,7 @@ public class Client {
         out.println(gson.toJson(message));
     }
 
-    public Player getTurnPlayer(){
+    public Player getTurnPlayer() {
         return game.getTurnPlayer();
     }
 }
