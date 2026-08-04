@@ -155,7 +155,7 @@ public class ClientHandler {
 
                     broadcastToGamePlayers(gameServer, response);
 
-                    if (resultShoot == Cell.MISS) {
+                    if (game.getGameMode() == GameMode.PVE && resultShoot == Cell.MISS) {
                         turnAI = true;
                     }
 

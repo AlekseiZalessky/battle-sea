@@ -10,8 +10,12 @@ import com.google.gson.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import java.io.*;
 import java.net.Socket;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
@@ -107,7 +111,7 @@ public class Client {
                         if (result == null) {
                             continue;
                         }
-
+                        playShootSound();
                         game = message.getGame();
                         update(game);
                         continue;
@@ -210,5 +214,19 @@ public class Client {
 
     public Player getTurnPlayer() {
         return game.getTurnPlayer();
+    }
+
+
+    public void playShootSound() {
+        try {
+            log.debug("playShootSound ");
+            URL soundUrl = getClass().getResource("/shoot.wav");
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundUrl);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (Exception e) {
+            log.error("Error in Client.playShootSound(): {}", e.getMessage(), e);
+        }
     }
 }
