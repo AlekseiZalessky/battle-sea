@@ -60,7 +60,7 @@ public class Client {
                     message = gson.fromJson(json, Message.class);
 
                     if ("AUTH_SUCCESS".equals(message.getType())) {
-                        currnetPlayer = message.getTurnPlayer();
+                        currnetPlayer = message.getCurrentPlayer();
                         System.out.println("AUTH_SUCCESS");
                         break;
                     }
@@ -73,7 +73,7 @@ public class Client {
                     }
                     Message message = gson.fromJson(json, Message.class);
                     if ("PVE_SUCCESS".equals(message.getType())) {
-                        currnetPlayer = message.getCreator();
+//                        currnetPlayer = message.getCreator();
                         boardCreator = message.getBoardPlayer1();
                         opponent = message.getOpponent();
                         continue;
@@ -202,7 +202,11 @@ public class Client {
         message.setType("SHOOT");
         message.setX(x);
         message.setY(y);
-        message.setTurnPlayer(currnetPlayer);
+        message.setCurrentPlayer(currnetPlayer);
         out.println(gson.toJson(message));
+    }
+
+    public Player getTurnPlayer(){
+        return game.getTurnPlayer();
     }
 }

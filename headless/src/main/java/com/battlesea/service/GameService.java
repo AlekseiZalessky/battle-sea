@@ -9,6 +9,7 @@ import com.battlesea.model.Player;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class GameService {
     private final ShipPlacementService shipPlacementService;
@@ -57,7 +58,7 @@ public class GameService {
         game.setGameMode(gameMode);
         game.setGameStatus(GameStatus.STARTED);
         game.setStartTime(LocalDateTime.now());
-
+        randomTurnPlayer(game);
         battleService.startGame(game);
         return game;
     }
@@ -66,5 +67,15 @@ public class GameService {
         System.out.println(createdGames);
         createdGames.remove(game);
         System.out.println(createdGames);
+    }
+
+    private void randomTurnPlayer(Game game) {
+        Random random = new Random();
+        boolean turnCreator = random.nextBoolean();
+        if (turnCreator) {
+            game.setTurnPlayer(game.getCreator());
+        } else {
+            game.setTurnPlayer(game.getOpponent());
+        }
     }
 }

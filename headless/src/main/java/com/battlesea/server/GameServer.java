@@ -1,5 +1,6 @@
 package com.battlesea.server;
 
+import com.battlesea.model.Game;
 import com.battlesea.model.Player;
 
 import java.net.ServerSocket;
@@ -15,6 +16,8 @@ public class GameServer {
     private final int port;
     private ExecutorService executor;
     private final Map<Player, ClientHandler> players = new ConcurrentHashMap<>();
+    private final Map<UUID, GameSession> sessions = new ConcurrentHashMap<>();
+    private ClientHandler clientHandler;
 
     public GameServer(int port) {
         this.port = port;
@@ -29,7 +32,7 @@ public class GameServer {
                 Socket socket = serverSocket.accept();
                 executor.execute(() ->{
                     try {
-                        new ClientHandler(socket, this);
+                        clientHandler = new ClientHandler(socket, this);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -50,5 +53,19 @@ public class GameServer {
 
     public void removePlayer(Player player) {
         players.remove(player);
+    }
+
+    public GameSession createSession(Game game) {
+        GameSession session = new GameSession(game, clientHandler);
+        sessions.put(game.getId(), session);
+        return session;
+    }
+
+    public GameSession getSession(UUID gameId) {
+        return sessions.get(gameId);
+    }
+
+    public void removeGameSession(UUID gameId) {
+        sessions.remove(gameId);
     }
 }

@@ -11,7 +11,7 @@ public class Message {
     private Board boardPlayer2;
     private Game game;
     private Cell resultShoot;
-    private Player turnPlayer;
+    private Player currentPlayer;
     private Player creator;
     private Player opponent;
 
@@ -84,12 +84,12 @@ public class Message {
         this.resultShoot = resultShoot;
     }
 
-    public Player getTurnPlayer() {
-        return turnPlayer;
+    public Player getCurrentPlayer() {
+        return currentPlayer;
     }
 
-    public void setTurnPlayer(Player turnPlayer) {
-        this.turnPlayer = turnPlayer;
+    public void setCurrentPlayer(Player currentPlayer) {
+        this.currentPlayer = currentPlayer;
     }
 
     public Player getCreator() {
@@ -119,7 +119,7 @@ public class Message {
             ", boardPlayer2=" + boardPlayer2 +
             ", game=" + game +
             ", resultShoot=" + resultShoot +
-            ", turnPlayer=" + turnPlayer +
+            ", turnPlayer=" + currentPlayer +
             ", creator=" + creator +
             ", opponent=" + opponent +
             '}';

@@ -49,7 +49,7 @@ public class BattleScreen implements Screen {
         if (client != null) {
             Board boardCurrentPlayer;
             Board boardOpponentPlayer;
-            if(client.getCreatorPlayer().equals(client.getCurrentPlayer())){
+            if (client.getCreatorPlayer().equals(client.getCurrentPlayer())) {
                 boardCurrentPlayer = client.getBoardCreator();
                 boardOpponentPlayer = client.getBoardOpponent();
             } else {
@@ -76,21 +76,24 @@ public class BattleScreen implements Screen {
 
         batch.end();
 
-        if(client.isGameOver()){
+        if (client.isGameOver()) {
             game.setScreen(new GameOverScreen(client, game));
         }
     }
 
     private void update() {
-        if (Gdx.input.justTouched()) {
-            int x = Gdx.input.getX();
-            int y = Gdx.graphics.getHeight() - Gdx.input.getY();
-            if (x > position.x && x < position.x + 10 * 32
-                && y > position.y && y < position.y + 10 * 32) {
-                int cellX = (int) ((x - position.x) / 32);
-                int cellY = (int) ((y - position.y) / 32);
 
-                client.sendAttack(cellX, cellY);
+        if(client.getTurnPlayer().equals(client.getCurrentPlayer())) {
+            if (Gdx.input.justTouched()) {
+                int x = Gdx.input.getX();
+                int y = Gdx.graphics.getHeight() - Gdx.input.getY();
+                if (x > position.x && x < position.x + 10 * 32
+                    && y > position.y && y < position.y + 10 * 32) {
+                    int cellX = (int) ((x - position.x) / 32);
+                    int cellY = (int) ((y - position.y) / 32);
+
+                    client.sendAttack(cellX, cellY);
+                }
             }
         }
     }

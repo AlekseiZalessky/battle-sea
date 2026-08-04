@@ -2,14 +2,14 @@ package com.battlesea.server;
 
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
-import com.battlesea.model.Board;
-import com.battlesea.model.Game;
-import com.battlesea.model.Message;
-import com.battlesea.model.Player;
+import com.battlesea.model.*;
+import com.battlesea.service.AIService;
 import com.battlesea.service.BattleService;
 import com.battlesea.service.GameService;
 import com.battlesea.service.ShipPlacementService;
 import com.google.gson.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
@@ -25,6 +25,11 @@ public class ClientHandler {
     private Board playerBoard1;
     private Game game;
     private final GameService gameService;
+    private GameSession gameSession;
+    private AIService aiService;
+    private static final Logger log = LoggerFactory.getLogger(ClientHandler.class);
+    private boolean turnAI;
+    private BattleService battleService = new BattleService();
 
     public ClientHandler(Socket socket, GameServer gameServer) throws Exception {
         this.socket = socket;
@@ -42,8 +47,7 @@ public class ClientHandler {
                     LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
             .create();
 
-
-        System.out.println("polucheno podkluchenie");
+        log.debug("polucheno podkluchenie");
         String json;
 
         Player player;
@@ -56,10 +60,10 @@ public class ClientHandler {
                     String username = input.getUsername();
                     player = new Player(username);
                     gameServer.registerPlayer(player, this);
-                    System.out.println("avtorizovan igrok: " + username);
+                    log.debug("avtorizovan igrok: {}", username);
                     Message response = new Message();
                     response.setType("AUTH_SUCCESS");
-                    response.setTurnPlayer(player);
+                    response.setCurrentPlayer(player);
                     out.println(gson.toJson(response));
                     break;
                 }
@@ -70,7 +74,7 @@ public class ClientHandler {
                 Message input = gson.fromJson(json, Message.class);
 
                 if ("PVE_AUTO".equals(input.getType())) {
-
+                    log.debug("PVE_AUTO");
                     ShipPlacementService service = new ShipPlacementService();
                     playerBoard1 = service.generateRandomShips(player);
                     Message response = new Message();
@@ -83,8 +87,14 @@ public class ClientHandler {
                 }
 
                 if ("START_GAME_PVE".equals(input.getType())) {
-                    System.out.println("START_GAME_PVE");
+                    log.debug("START_GAME_PVE");
                     game = gameService.startGame(player, playerBoard1, GameMode.PVE);
+                    log.debug("game: {}", game);
+                    gameSession = new GameSession(game, this);
+                    log.debug("gameSession: {}", gameSession);
+                    if (game.getTurnPlayer().equals(game.getOpponent())) {
+                        turnAI = true;
+                    }
                     Message response = new Message();
                     response.setType("START_GAME_PVE_SUCCESS");
                     response.setGame(game);
@@ -93,10 +103,11 @@ public class ClientHandler {
                 }
 
                 if ("START_GAME_PVP_ONLINE".equals(input.getType())) {
+                    log.debug("START_GAME_PVP_ONLINE");
                     Message response = new Message();
                     game = gameService.startGame(player, playerBoard1, GameMode.PVP_ONLINE);
-                    System.out.println(game.getCreator());
-                    System.out.println(game.getOpponent());
+                    gameSession = new GameSession(game, this);
+                    aiService = gameSession.getAiService();
                     int waitingTime = 0;
                     int maxWaitingTime = 60000;
                     while (true) {
@@ -115,6 +126,7 @@ public class ClientHandler {
                     if (game.getOpponent() == null) {
                         continue;
                     }
+                    gameSession.setOpponentHandler(gameServer.getClientHandler(game.getOpponent()));
                     response.setType("START_GAME_PVP_ONLINE_SUCCESS");
                     response.setGame(game);
                     broadcastToGamePlayers(gameServer, response);
@@ -124,9 +136,11 @@ public class ClientHandler {
                     Message response = new Message();
                     int x = input.getX();
                     int y = input.getY();
-                    BattleService battleService = new BattleService();
                     game.setTurnPlayer(player);
-                    Cell resultShoot = battleService.shoot(game, x, y);
+                    Cell resultShoot = battleService.shoot(game, new Coordinate(x, y));
+                    if (resultShoot == null) {
+                        continue;
+                    }
                     game = battleService.getGame();
 
                     response.setType("RESULT_SHOOT");
@@ -136,18 +150,49 @@ public class ClientHandler {
 
                     response.setResultShoot(resultShoot);
 
+                    log.debug("response: {}", response);
+
                     broadcastToGamePlayers(gameServer, response);
 
-                    boolean gameOver = battleService.isGameOver();
-                    if (gameOver) {
-                        System.out.println("GAME OVER");
-                        System.out.println(game);
-                        battleService.winner(game);
-                        System.out.println(game);
-                        response = new Message();
-                        response.setType("GAME_OVER");
+                    if (resultShoot == Cell.MISS) {
+                        turnAI = true;
+                    }
+
+                    isGameOver(gameServer);
+                }
+
+                if (turnAI) {
+                    while (turnAI) {
+                        Thread.sleep(1000);
+                        aiService = gameSession.getAiService();
+                        Coordinate coordinate = aiService.chooseCoordinate();
+                        aiService.removeCoordinate(coordinate);
+                        Cell resultShoot = battleService.shoot(game, coordinate);
+                        if (resultShoot == Cell.MISS) {
+                            turnAI = false;
+                        }
+                        if (resultShoot == Cell.HIT && !aiService.isSunk(coordinate)) {
+                            if (aiService.isHasHit()) {
+                                aiService.setOrientation(coordinate);
+                            }
+                            aiService.setHasHit(true);
+                            if (!aiService.isHasHit()) {
+                                aiService.setCoordinateHit(coordinate);
+                            }
+
+                        }
+                        Message response = new Message();
+                        response.setType("RESULT_SHOOT");
                         response.setGame(game);
+
+                        response.setResultShoot(resultShoot);
+
                         broadcastToGamePlayers(gameServer, response);
+                        if (resultShoot == Cell.MISS) {
+                            turnAI = false;
+                        }
+
+                        isGameOver(gameServer);
                     }
                 }
             }
@@ -156,8 +201,21 @@ public class ClientHandler {
         }
     }
 
+    private void isGameOver(GameServer gameServer) {
+        boolean gameOver = battleService.isGameOver();
+        if (gameOver) {
+            System.out.println("GAME OVER");
+            battleService.winner(game);
+            System.out.println(game);
+            Message response = new Message();
+            response.setType("GAME_OVER");
+            response.setGame(game);
+            broadcastToGamePlayers(gameServer, response);
+        }
+    }
+
     private void broadcastToGamePlayers(GameServer gameServer, Message message) {
-        if(game == null) {
+        if (game == null) {
             throw new NullPointerException("game is null");
         }
         String json = gson.toJson(message);

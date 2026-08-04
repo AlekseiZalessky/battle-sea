@@ -3,6 +3,8 @@ package com.battlesea.service;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.TypeShip;
 import com.battlesea.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -13,6 +15,8 @@ public class BattleService {
     private Board boardPlayer2;
     private Board targetBoard;
     private boolean gameOver;
+    private Player turnPlayer;
+    private static final Logger log = LoggerFactory.getLogger(BattleService.class);
 
     public void startGame(Game game) {
         if (game == null) {
@@ -23,12 +27,14 @@ public class BattleService {
         this.boardPlayer2 = game.getBoardOpponent();
     }
 
-    public Cell shoot(Game game, int x, int y) {
+    public Cell shoot(Game game, Coordinate coordinate) {
         this.game = game;
+        int x = coordinate.x();
+        int y = coordinate.y();
         if (!validateCoordinate(x, y)) {
             throw new IllegalArgumentException("Coordinates are invalid");
         }
-        Player turnPlayer = game.getTurnPlayer();
+        turnPlayer = game.getTurnPlayer();
         if (turnPlayer == null) {
             throw new NullPointerException("Turn player is null");
         }
@@ -44,9 +50,11 @@ public class BattleService {
             case HALO:
             case HIT:
             case MISS:
+                log.debug(cells[x][y].toString());
                 return null;
             case EMPTY:
                 cells[x][y] = Cell.MISS;
+                switchTurnPlayer();
                 break;
             case SHIP:
                 cells[x][y] = Cell.HIT;
@@ -166,5 +174,17 @@ public class BattleService {
         } else {
             game.setWinner(game.getOpponent());
         }
+    }
+
+    private void switchTurnPlayer() {
+        log.debug("Turn player: {}", turnPlayer);
+        if(turnPlayer.equals(game.getCreator())){
+            turnPlayer = game.getOpponent();
+        } else {
+            turnPlayer = game.getCreator();
+        }
+        game.setTurnPlayer(turnPlayer);
+        log.debug("new turn player: {}", turnPlayer);
+        System.out.println();
     }
 }
