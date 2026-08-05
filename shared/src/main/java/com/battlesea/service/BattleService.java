@@ -11,20 +11,17 @@ import java.util.List;
 public class BattleService {
     private Game game;
     private final int SIZE_BOARD = Board.SIZE;
-    private Board boardPlayer1;
-    private Board boardPlayer2;
     private Board targetBoard;
     private boolean gameOver;
     private Player turnPlayer;
     private static final Logger log = LoggerFactory.getLogger(BattleService.class);
+    private int counter;
 
     public void startGame(Game game) {
         if (game == null) {
             throw new NullPointerException("Game is null");
         }
         this.game = game;
-        this.boardPlayer1 = game.getBoardCreator();
-        this.boardPlayer2 = game.getBoardOpponent();
     }
 
     public Cell shoot(Game game, Coordinate coordinate) {
@@ -38,7 +35,7 @@ public class BattleService {
         if (turnPlayer == null) {
             throw new NullPointerException("Turn player is null");
         }
-        if (turnPlayer == game.getCreator()) {
+        if (turnPlayer.equals(game.getCreator())) {
             targetBoard = game.getBoardOpponent();
         } else {
             targetBoard = game.getBoardCreator();
@@ -64,6 +61,7 @@ public class BattleService {
         }
 
         Cell cellResult = cells[x][y];
+        counter++;
         return cellResult;
     }
 
@@ -168,7 +166,7 @@ public class BattleService {
         return game;
     }
 
-    public void winner(Game game){
+    public void winner(){
         if(game.getTurnPlayer() == game.getCreator()){
             game.setWinner(game.getCreator());
         } else {
@@ -176,15 +174,21 @@ public class BattleService {
         }
     }
 
-    private void switchTurnPlayer() {
+    public void switchTurnPlayer() {
         log.debug("Turn player: {}", turnPlayer);
         if(turnPlayer.equals(game.getCreator())){
             turnPlayer = game.getOpponent();
+            targetBoard = game.getBoardCreator();
         } else {
             turnPlayer = game.getCreator();
+            targetBoard = game.getBoardOpponent();
         }
         game.setTurnPlayer(turnPlayer);
         log.debug("new turn player: {}", turnPlayer);
         System.out.println();
+    }
+
+    public int getCounter() {
+        return counter;
     }
 }

@@ -46,23 +46,24 @@ public class BattleScreen implements Screen {
     @Override
     public void render(float delta) {
         update();
-        if (client != null) {
-            Board boardCurrentPlayer;
-            Board boardOpponentPlayer;
-            if (client.getCreatorPlayer().equals(client.getCurrentPlayer())) {
-                boardCurrentPlayer = client.getBoardCreator();
-                boardOpponentPlayer = client.getBoardOpponent();
-            } else {
-                boardCurrentPlayer = client.getBoardOpponent();
-                boardOpponentPlayer = client.getBoardCreator();
-            }
-
-            Board newBoardCurrentPlayer = boardCurrentPlayer;
-            if (newBoardCurrentPlayer != null && !newBoardCurrentPlayer.equals(boardCreator)) {
-                boardCreator = newBoardCurrentPlayer;
-            }
-            boardOpponent = boardOpponentPlayer;
+        if (client == null) {
+            return;
         }
+        Board boardCurrentPlayer;
+        Board boardOpponentPlayer;
+        if (client.getCreatorPlayer().equals(client.getCurrentPlayer())) {
+            boardCurrentPlayer = client.getBoardCreator();
+            boardOpponentPlayer = client.getBoardOpponent();
+        } else {
+            boardCurrentPlayer = client.getBoardOpponent();
+            boardOpponentPlayer = client.getBoardCreator();
+        }
+
+        Board newBoardCurrentPlayer = boardCurrentPlayer;
+        if (newBoardCurrentPlayer != null && !newBoardCurrentPlayer.equals(boardCreator)) {
+            boardCreator = newBoardCurrentPlayer;
+        }
+        boardOpponent = boardOpponentPlayer;
 
         batch.begin();
 
@@ -83,7 +84,7 @@ public class BattleScreen implements Screen {
 
     private void update() {
 
-        if(client.getTurnPlayer().equals(client.getCurrentPlayer())) {
+        if (client.getTurnPlayer().equals(client.getCurrentPlayer())) {
             if (Gdx.input.justTouched()) {
                 int x = Gdx.input.getX();
                 int y = Gdx.graphics.getHeight() - Gdx.input.getY();

@@ -118,7 +118,7 @@ public class PlacementScreen implements Screen {
 
                     if(gameMode == GameMode.PVE) {
                         client.sendMessage("START_GAME_PVE");
-                        timeout(1000);
+                        timeout(2000);
 
                         game.setScreen(new BattleScreen(client, game, gameMode));
                     } else  {

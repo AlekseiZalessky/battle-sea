@@ -36,6 +36,17 @@ public class Client {
     private boolean timeOut;
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
+//    public void updateOnStartGame(){
+//        boardCreator = null;
+//        boardOpponent = null;
+//        game = null;
+//        gameOver = false;
+//        creator = null;
+//        opponent = null;
+//        isStartingGame = false;
+//        timeOut = false;
+//    }
+
     public Client(String host, int port) throws Exception {
         this.socket = new Socket(host, port);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -111,7 +122,7 @@ public class Client {
                         if (result == null) {
                             continue;
                         }
-                        playShootSound();
+//                        playShootSound();
                         game = message.getGame();
                         update(game);
                         continue;
@@ -129,6 +140,12 @@ public class Client {
                     if ("TIMEOUT".equals(message.getType())) {
                         timeOut = true;
                         log.info("TIMEOUT");
+                    }
+
+                    if ("TURN_TIMEOUT".equals(message.getType())) {
+                        log.debug("TURN_TIMEOUT");
+                        game = message.getGame();
+                        sendMessage("SWITCH_TURN");
                     }
                 }
             } catch (Exception e) {

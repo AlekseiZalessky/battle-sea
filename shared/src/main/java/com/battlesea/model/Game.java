@@ -19,6 +19,7 @@ public class Game {
     private Board boardOpponent;
     private Player turnPlayer;
     private Player winner;
+    public static final int TURN_TIME = 5;
 
     public Game(Player creator, Board boardCreator, Player opponent, GameMode gameMode) {
         this.id = UUID.randomUUID();
@@ -119,13 +120,13 @@ public class Game {
             "id=" + id +
             ", creator=" + creator +
             ", opponent=" + opponent +
-            ", creationTime=" + creationTime +
-            ", startTime=" + startTime +
-            ", endTime=" + endTime +
+//            ", creationTime=" + creationTime +
+//            ", startTime=" + startTime +
+//            ", endTime=" + endTime +
             ", gameMode=" + gameMode +
             ", gameStatus=" + gameStatus +
-            ", boardCreator=" + boardCreator +
-            ", boardOpponent=" + boardOpponent +
+//            ", boardCreator=" + boardCreator +
+//            ", boardOpponent=" + boardOpponent +
             ", turnPlayer=" + turnPlayer +
             ", winner=" + winner +
             '}';

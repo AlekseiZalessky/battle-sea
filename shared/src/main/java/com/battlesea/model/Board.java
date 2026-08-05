@@ -5,6 +5,7 @@ import com.battlesea.enums.Cell;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Board {
     public static final int SIZE = 10;
@@ -81,5 +82,18 @@ public class Board {
             ", cells=" + Arrays.toString(cells) +
             ", player=" + player +
             '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Board board = (Board) o;
+        return Objects.equals(ships, board.ships) && Objects.deepEquals(cells, board.cells) && Objects.equals(player, board.player);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ships, Arrays.deepHashCode(cells), player);
     }
 }
