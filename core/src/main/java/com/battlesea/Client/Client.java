@@ -101,7 +101,9 @@ public class Client {
 
                     if ("START_GAME_PVE_SUCCESS".equals(message.getType())) {
                         log.info("START_GAME_PVE_SUCCESS");
+                        isStartingGame = true;
                         game = message.getGame();
+                        log.debug("game: {}", game);
                         update(game);
                         continue;
                     }
@@ -145,7 +147,9 @@ public class Client {
                     if ("TURN_TIMEOUT".equals(message.getType())) {
                         log.debug("TURN_TIMEOUT");
                         game = message.getGame();
-                        sendMessage("SWITCH_TURN");
+                        if (game.getTurnPlayer().equals(game.getOpponent())) {
+                            sendMessage("SWITCH_TURN");
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -232,7 +236,6 @@ public class Client {
     public Player getTurnPlayer() {
         return game.getTurnPlayer();
     }
-
 
     public void playShootSound() {
         try {

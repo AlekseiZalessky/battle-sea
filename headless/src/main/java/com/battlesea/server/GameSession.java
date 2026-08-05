@@ -17,16 +17,9 @@ public class GameSession {
 
     public GameSession(Game game, ClientHandler creatorHandler) {
         this.game = game;
-        this.battleService = new BattleService();
+        this.battleService = new BattleService(game);
         this.aiService = game.getGameMode() == GameMode.PVE ? new AIService(game) : null;
         this.creatorHandler = creatorHandler;
-        log.debug("""
-            \ngame: {}
-            aiService: {}
-            battleService: {}
-            creatorHandler: {}
-            opponentHandler: {}""",
-            game, aiService, battleService, creatorHandler, opponentHandler);
     }
 
     public Game getGame() {

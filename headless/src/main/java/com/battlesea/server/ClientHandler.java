@@ -30,7 +30,7 @@ public class ClientHandler {
     private AIService aiService;
     private static final Logger log = LoggerFactory.getLogger(ClientHandler.class);
     private boolean turnAI;
-    private BattleService battleService = new BattleService();
+    private BattleService battleService;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> timeoutTask;
     private boolean gameOver;
@@ -92,14 +92,16 @@ public class ClientHandler {
                 }
 
                 if ("START_GAME_PVE".equals(input.getType())) {
-                    timer();
+
                     log.debug("START_GAME_PVE");
                     game = gameService.startGame(player, playerBoard1, GameMode.PVE);
                     log.debug("game: {}", game);
                     gameSession = new GameSession(game, this);
-                    log.debug("gameSession: {}", gameSession);
+                    battleService = gameSession.getBattleService();
                     if (game.getTurnPlayer().equals(game.getOpponent())) {
                         turnAI = true;
+                    } else {
+                        timer();
                     }
                     Message response = new Message();
                     response.setType("START_GAME_PVE_SUCCESS");
@@ -153,11 +155,7 @@ public class ClientHandler {
                     response.setGame(game);
                     response.setX(x);
                     response.setY(y);
-
                     response.setResultShoot(resultShoot);
-
-                    log.debug("response: {}", response);
-
                     broadcastToGamePlayers(gameServer, response);
 
                     if (game.getGameMode() == GameMode.PVE && resultShoot == Cell.MISS) {
@@ -169,12 +167,11 @@ public class ClientHandler {
                 }
 
                 if (turnAI) {
-                    if (gameOver){
+                    if (gameOver) {
                         break;
                     }
-                    log.debug("TurnAI={}", turnAI);
+                    log.debug("TurnAI");
                     while (turnAI) {
-                        log.debug("ClientHandler    start move ai");
                         aiService = gameSession.getAiService();
                         Coordinate coordinate = aiService.chooseCoordinate();
                         log.debug("ClientHandler    coordinate: {}", coordinate);
@@ -192,13 +189,13 @@ public class ClientHandler {
                             aiService.setHasHit(true);
                         }
                         aiService.removeCoordinate(coordinate);
+                        aiService.updateFreeCoordinates();
                         Message response = new Message();
                         response.setType("RESULT_SHOOT");
                         response.setGame(game);
-
                         response.setResultShoot(resultShoot);
-
                         broadcastToGamePlayers(gameServer, response);
+
                         if (resultShoot == Cell.MISS) {
                             turnAI = false;
                             timer();
@@ -206,12 +203,13 @@ public class ClientHandler {
                         }
 
                         isGameOver(gameServer);
-
                     }
 
                     if ("SWITCH_TURN".equals(input.getType())) {
                         log.debug("SWITCH_TURN");
-                        turnAI = true;
+                        if (game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())) {
+                            turnAI = true;
+                        }
                     }
                 }
             }

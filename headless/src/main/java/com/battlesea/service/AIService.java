@@ -16,7 +16,7 @@ import java.util.Random;
 public class AIService {
     private static final Logger log = LoggerFactory.getLogger(AIService.class);
     private Game game;
-    private List<Coordinate> coorForMoveAI = new ArrayList<>();
+    private final List<Coordinate> coorForMoveAI = new ArrayList<>();
     private final int SIZE_BOARD = Board.SIZE;
     private Board targetBoard;
     private Cell[][] cells;
@@ -231,5 +231,18 @@ public class AIService {
         coordinateHit = null;
         hasOrientation = false;
         isHorizontal = false;
+    }
+
+    public void updateFreeCoordinates() {
+//        log.debug("Updating free coordinates...");
+//        log.debug("Size coorForMoveAI before updating: {}", coorForMoveAI.size());
+        for (int i = 0; i < SIZE_BOARD; i++) {
+            for (int j = 0; j < SIZE_BOARD; j++) {
+                if(cells[i][j] == Cell.HALO || cells[i][j] == Cell.MISS || cells[i][j] == Cell.HIT) {
+                    coorForMoveAI.remove(new Coordinate(i, j));
+                }
+            }
+        }
+//        log.debug("Size coorForMoveAI after updating: {}", coorForMoveAI.size());
     }
 }

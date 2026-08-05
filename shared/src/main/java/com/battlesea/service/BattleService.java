@@ -17,21 +17,29 @@ public class BattleService {
     private static final Logger log = LoggerFactory.getLogger(BattleService.class);
     private int counter;
 
+    public BattleService(Game game) {
+        this.game = game;
+        turnPlayer = game.getTurnPlayer();
+    }
+
     public void startGame(Game game) {
         if (game == null) {
             throw new NullPointerException("Game is null");
         }
-        this.game = game;
+//        this.game = game;
     }
 
-    public Cell shoot(Game game, Coordinate coordinate) {
-        this.game = game;
+    public Cell shoot(Game game1, Coordinate coordinate) {
+//        this.game = game;
+//        this.turnPlayer = game.getTurnPlayer();
         int x = coordinate.x();
         int y = coordinate.y();
         if (!validateCoordinate(x, y)) {
             throw new IllegalArgumentException("Coordinates are invalid");
         }
-        turnPlayer = game.getTurnPlayer();
+
+//        turnPlayer = game.getTurnPlayer();
+
         if (turnPlayer == null) {
             throw new NullPointerException("Turn player is null");
         }
@@ -175,16 +183,20 @@ public class BattleService {
     }
 
     public void switchTurnPlayer() {
-        log.debug("Turn player: {}", turnPlayer);
+        log.debug("=== SWITCH TURN ===");
+        log.debug("Current turnPlayer before switch: {}", turnPlayer);
         if(turnPlayer.equals(game.getCreator())){
             turnPlayer = game.getOpponent();
             targetBoard = game.getBoardCreator();
+            log.debug("Switched: CREATOR -> OPPONENT");
         } else {
             turnPlayer = game.getCreator();
             targetBoard = game.getBoardOpponent();
+            log.debug("Switched: OPPONENT -> CREATOR");
         }
         game.setTurnPlayer(turnPlayer);
-        log.debug("new turn player: {}", turnPlayer);
+        log.debug("New turnPlayer: {}", turnPlayer);
+        log.debug("=== SWITCH TURN END ===");
         System.out.println();
     }
 

@@ -5,6 +5,8 @@ import com.battlesea.enums.GameStatus;
 import com.battlesea.model.Board;
 import com.battlesea.model.Game;
 import com.battlesea.model.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,13 +14,14 @@ import java.util.List;
 import java.util.Random;
 
 public class GameService {
+    private static final Logger log = LoggerFactory.getLogger(GameService.class);
     private final ShipPlacementService shipPlacementService;
-    private final BattleService battleService;
-    private static List<Game> createdGames = new ArrayList<>();
+//    private final BattleService battleService;
+    private static final List<Game> createdGames = new ArrayList<>();
 
     public GameService() {
         shipPlacementService = new ShipPlacementService();
-        battleService = new BattleService();
+//        battleService = new BattleService();
     }
 
     public Game startGame(Player player, Board board, GameMode gameMode) {
@@ -34,12 +37,12 @@ public class GameService {
 
         if (gameMode == GameMode.PVP_ONLINE) {
             if (createdGames.isEmpty()) {
-                System.out.println("sozdanie novoi igri");
+                log.debug("Creating new game for player: {}", player);
                 game = new Game(player, board, gameMode);
                 createdGames.add(game);
                 game.setGameStatus(GameStatus.CREATED);
                 game.setBoardCreator(board);
-                System.out.println("sozdana igra: " + game);
+                log.debug("Created game: {}", game);
 
             } else {
                 game = createdGames.getFirst();
@@ -47,7 +50,7 @@ public class GameService {
                 createdGames.remove(game);
                 game.setOpponent(player);
                 game.setBoardOpponent(board);
-                System.out.println("igrok: " + player + " podkluchilsya k igre: " + game);
+                log.debug("Player: {} connected to game: {}", player, game);
             }
         }
 
@@ -59,17 +62,21 @@ public class GameService {
         game.setGameStatus(GameStatus.STARTED);
         game.setStartTime(LocalDateTime.now());
         randomTurnPlayer(game);
-        battleService.startGame(game);
+//        battleService.startGame(game);
         return game;
     }
 
     public void deleteGameFromCreatedGames(Game game) {
-        System.out.println(createdGames);
+        if(game == null) {
+            throw new IllegalArgumentException("Game is null");
+        }
         createdGames.remove(game);
-        System.out.println(createdGames);
     }
 
     private void randomTurnPlayer(Game game) {
+        if(game == null) {
+            throw new IllegalArgumentException("Game is null");
+        }
         Random random = new Random();
         boolean turnCreator = random.nextBoolean();
         if (turnCreator) {
@@ -77,5 +84,6 @@ public class GameService {
         } else {
             game.setTurnPlayer(game.getOpponent());
         }
+        log.debug("randomTurnPlayer: {}", game.getTurnPlayer());
     }
 }
