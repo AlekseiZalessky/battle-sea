@@ -2,6 +2,8 @@ package com.battlesea.server;
 
 import com.battlesea.model.Game;
 import com.battlesea.model.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,13 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 public class GameServer {
     private final int port;
-    private ExecutorService executor;
+    private final ExecutorService executor;
     private final Map<Player, ClientHandler> players = new ConcurrentHashMap<>();
     private final Map<UUID, GameSession> sessions = new ConcurrentHashMap<>();
     private ClientHandler clientHandler;
+    private static final Logger log = LoggerFactory.getLogger(GameServer.class);
 
     public GameServer(int port) {
         this.port = port;
@@ -26,7 +28,7 @@ public class GameServer {
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Сервер запущен на порту " + port);
+            log.debug("Сервер запущен на порту " + port);
 
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -39,7 +41,7 @@ public class GameServer {
                 });
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error in GameServer: {}", e.getMessage(), e);
         }
     }
 

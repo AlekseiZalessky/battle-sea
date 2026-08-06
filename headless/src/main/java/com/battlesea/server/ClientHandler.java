@@ -36,16 +36,6 @@ public class ClientHandler {
     private boolean gameOver;
     private final int TURN_TIME = Game.TURN_TIME;
 
-    private void updateFields(){
-        playerBoard = null;
-        game = null;
-        gameSession = null;
-        aiService = null;
-        turnAI = false;
-        gameOver = false;
-        battleService = null;
-    }
-
     public ClientHandler(Socket socket, GameServer gameServer) throws Exception {
         this.socket = socket;
         this.gameServer = gameServer;
@@ -72,8 +62,8 @@ public class ClientHandler {
                 Message input = gson.fromJson(json, Message.class);
                 log.debug("input: {}", input);
                 if ("AUTH".equals(input.getType())) {
-                    String username = input.getUsername();
-                    player = new Player(username);
+                    player = new Player();
+                    String username = player.getName();
                     gameServer.registerPlayer(player, this);
                     log.debug("avtorizovan igrok: {}", username);
                     Message response = new Message();
@@ -88,7 +78,7 @@ public class ClientHandler {
                 json = in.readLine();
                 Message input = gson.fromJson(json, Message.class);
 
-                if("UPDATE_FIELDS".equals(input.getType())) {
+                if ("UPDATE_FIELDS".equals(input.getType())) {
                     log.debug("UPDATE_FIELDS");
                     updateFields();
                 }
@@ -132,34 +122,16 @@ public class ClientHandler {
                     log.debug("START_GAME_PVP_ONLINE");
                     Message response = new Message();
                     game = gameService.startGame(player, playerBoard, GameMode.PVP_ONLINE);
+                    response.setTimeStartTurn(System.currentTimeMillis());
                     gameSession = new GameSession(game, this);
-//                    aiService = gameSession.getAiService();
-                    int waitingTime = 0;
-                    int maxWaitingTime = 60000;
-                    while (true) {
-                        if (waitingTime >= maxWaitingTime) {
-                            gameService.deleteGameFromCreatedGames(game);
-                            response.setType("TIMEOUT");
-                            log.info("TIMEOUT");
-                            out.println(gson.toJson(response));
-                            break;
-                        }
-                        if (game.getOpponent() != null)
-                            break;
-                        Thread.sleep(1000);
-                        waitingTime += 1000;
-                    }
-                    if (game.getOpponent() == null) {
-                        continue;
-                    }
-                    gameSession.setOpponentHandler(gameServer.getClientHandler(game.getOpponent()));
-                    response.setType("START_GAME_PVP_ONLINE_SUCCESS");
-                    response.setGame(game);
-                    broadcastToGamePlayers(gameServer, response);
+                    waitingOpponent();
+//                    timer();
                 }
 
+
+
                 if ("SHOOT".equals(input.getType())) {
-                    if(gameOver ){
+                    if (gameOver) {
                         continue;
                     }
                     log.debug("SHOOT");
@@ -249,12 +221,43 @@ public class ClientHandler {
         }
     }
 
+    private void waitingOpponent () {
+        final int[] waitingTime = {0};
+        int maxWaitingTime = 60000;
+
+        scheduler.scheduleAtFixedRate(() -> {
+            if (waitingTime[0] >= maxWaitingTime) {
+                gameService.deleteGameFromCreatedGames(game);
+                Message response = new Message();
+                response.setType("TIMEOUT");
+                log.info("TIMEOUT");
+                out.println(gson.toJson(response));
+                timeoutTask.cancel(false);
+                return;
+            }
+            if (game.getOpponent() != null) {
+                Message response = new Message();
+                gameSession.setOpponentHandler(gameServer.getClientHandler(game.getOpponent()));
+                response.setType("START_GAME_PVP_ONLINE_SUCCESS");
+                response.setGame(game);
+                broadcastToGamePlayers(gameServer, response);
+                timeoutTask.cancel(false);
+                return;
+            }
+            waitingTime[0] += 1000;
+
+        }, 0, 1000, TimeUnit.MILLISECONDS);
+    }
+
     private void timer() {
         cancelTimer();
 
         int counter = battleService.getCounter();
+        log.debug("counter: {}", counter);
+
 
         timeoutTask = scheduler.schedule(() -> {
+            log.debug("battleService.getCounter: {}", battleService.getCounter());
             if (counter == battleService.getCounter()) {
                 log.debug("TURN_TIMEOUT");
                 battleService.switchTurnPlayer();
@@ -274,6 +277,16 @@ public class ClientHandler {
             timeoutTask.cancel(false);
             timeoutTask = null;
         }
+    }
+
+    private void updateFields() {
+        playerBoard = null;
+        game = null;
+        gameSession = null;
+        aiService = null;
+        turnAI = false;
+        gameOver = false;
+        battleService = null;
     }
 
     private void isGameOver() {
