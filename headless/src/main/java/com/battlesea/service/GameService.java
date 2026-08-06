@@ -16,12 +16,10 @@ import java.util.Random;
 public class GameService {
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
     private final ShipPlacementService shipPlacementService;
-//    private final BattleService battleService;
     private static final List<Game> createdGames = new ArrayList<>();
 
     public GameService() {
         shipPlacementService = new ShipPlacementService();
-//        battleService = new BattleService();
     }
 
     public Game startGame(Player player, Board board, GameMode gameMode) {
@@ -62,7 +60,6 @@ public class GameService {
         game.setGameStatus(GameStatus.STARTED);
         game.setStartTime(LocalDateTime.now());
         randomTurnPlayer(game);
-//        battleService.startGame(game);
         return game;
     }
 
@@ -79,7 +76,7 @@ public class GameService {
         }
         Random random = new Random();
         boolean turnCreator = random.nextBoolean();
-        if (turnCreator) {
+        if (false) {
             game.setTurnPlayer(game.getCreator());
         } else {
             game.setTurnPlayer(game.getOpponent());

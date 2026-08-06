@@ -23,7 +23,7 @@ public class ClientHandler {
     private final BufferedReader in;
     private final PrintWriter out;
     private final Gson gson;
-    private Board playerBoard1;
+    private Board playerBoard;
     private Game game;
     private final GameService gameService;
     private GameSession gameSession;
@@ -81,11 +81,11 @@ public class ClientHandler {
                 if ("PVE_AUTO".equals(input.getType())) {
                     log.debug("PVE_AUTO");
                     ShipPlacementService service = new ShipPlacementService();
-                    playerBoard1 = service.generateRandomShips(player);
+                    playerBoard = service.generateRandomShips(player);
                     Message response = new Message();
                     response.setType("PVE_SUCCESS");
                     response.setCreator(player);
-                    response.setBoardPlayer1(playerBoard1);
+                    response.setBoardPlayer1(playerBoard);
 
                     String responseJson = gson.toJson(response);
                     out.println(responseJson);
@@ -94,7 +94,7 @@ public class ClientHandler {
                 if ("START_GAME_PVE".equals(input.getType())) {
 
                     log.debug("START_GAME_PVE");
-                    game = gameService.startGame(player, playerBoard1, GameMode.PVE);
+                    game = gameService.startGame(player, playerBoard, GameMode.PVE);
                     log.debug("game: {}", game);
                     gameSession = new GameSession(game, this);
                     battleService = gameSession.getBattleService();
@@ -106,6 +106,7 @@ public class ClientHandler {
                     Message response = new Message();
                     response.setType("START_GAME_PVE_SUCCESS");
                     response.setGame(game);
+                    response.setTimeStartTurn(System.currentTimeMillis());
                     String responseJson = gson.toJson(response);
                     out.println(responseJson);
                 }
@@ -113,9 +114,9 @@ public class ClientHandler {
                 if ("START_GAME_PVP_ONLINE".equals(input.getType())) {
                     log.debug("START_GAME_PVP_ONLINE");
                     Message response = new Message();
-                    game = gameService.startGame(player, playerBoard1, GameMode.PVP_ONLINE);
+                    game = gameService.startGame(player, playerBoard, GameMode.PVP_ONLINE);
                     gameSession = new GameSession(game, this);
-                    aiService = gameSession.getAiService();
+//                    aiService = gameSession.getAiService();
                     int waitingTime = 0;
                     int maxWaitingTime = 60000;
                     while (true) {
@@ -146,7 +147,8 @@ public class ClientHandler {
                     int x = input.getX();
                     int y = input.getY();
                     log.debug("player shoot coordinate: {},{}", x, y);
-                    Cell resultShoot = battleService.shoot(game, new Coordinate(x, y));
+                    battleService = gameSession.getBattleService();
+                    Cell resultShoot = battleService.shoot(new Coordinate(x, y));
                     if (resultShoot == null) {
                         continue;
                     }
@@ -156,6 +158,7 @@ public class ClientHandler {
                     response.setX(x);
                     response.setY(y);
                     response.setResultShoot(resultShoot);
+                    response.setTimeStartTurn(System.currentTimeMillis());
                     broadcastToGamePlayers(gameServer, response);
 
                     if (game.getGameMode() == GameMode.PVE && resultShoot == Cell.MISS) {
@@ -170,12 +173,15 @@ public class ClientHandler {
                     if (gameOver) {
                         break;
                     }
+                    if(battleService.getCounter() == 0){
+                        Thread.sleep(3000);
+                    }
                     log.debug("TurnAI");
                     while (turnAI) {
                         aiService = gameSession.getAiService();
                         Coordinate coordinate = aiService.chooseCoordinate();
                         log.debug("ClientHandler    coordinate: {}", coordinate);
-                        Cell resultShoot = battleService.shoot(game, coordinate);
+                        Cell resultShoot = battleService.shoot(coordinate);
                         log.debug("ClientHandler   resultShoot: {}", resultShoot);
 
                         if (resultShoot == Cell.HIT && !aiService.isSunk(coordinate)) {
@@ -194,6 +200,7 @@ public class ClientHandler {
                         response.setType("RESULT_SHOOT");
                         response.setGame(game);
                         response.setResultShoot(resultShoot);
+                        response.setTimeStartTurn(System.currentTimeMillis());
                         broadcastToGamePlayers(gameServer, response);
 
                         if (resultShoot == Cell.MISS) {

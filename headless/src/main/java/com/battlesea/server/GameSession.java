@@ -20,6 +20,7 @@ public class GameSession {
         this.battleService = new BattleService(game);
         this.aiService = game.getGameMode() == GameMode.PVE ? new AIService(game) : null;
         this.creatorHandler = creatorHandler;
+        log.debug("created game session: {}", game);
     }
 
     public Game getGame() {

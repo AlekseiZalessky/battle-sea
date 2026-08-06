@@ -35,6 +35,8 @@ public class Client {
     private boolean isStartingGame;
     private boolean timeOut;
     private static final Logger log = LoggerFactory.getLogger(Client.class);
+    private final int TURN_TIME = (Game.TURN_TIME + 1) * 1000;
+    private long timeStartTimer;
 
 //    public void updateOnStartGame(){
 //        boardCreator = null;
@@ -100,6 +102,7 @@ public class Client {
                     }
 
                     if ("START_GAME_PVE_SUCCESS".equals(message.getType())) {
+                        timeStartTimer = message.getTimeStartTurn();
                         log.info("START_GAME_PVE_SUCCESS");
                         isStartingGame = true;
                         game = message.getGame();
@@ -110,6 +113,7 @@ public class Client {
 
                     if ("START_GAME_PVP_ONLINE_SUCCESS".equals(message.getType())) {
                         log.info("START_GAME_PVP_ONLINE_SUCCESS");
+                        timeStartTimer = message.getTimeStartTurn();
                         game = message.getGame();
                         update(game);
                         isStartingGame = true;
@@ -120,6 +124,7 @@ public class Client {
                         if(game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())){
                             Thread.sleep(500);
                         }
+                        timeStartTimer = message.getTimeStartTurn();
                         Cell result = message.getResultShoot();
                         if (result == null) {
                             continue;
@@ -206,7 +211,11 @@ public class Client {
         return game;
     }
 
-//    public void sendAutoPlaceRequest() {
+    public long getTurnTime() {
+        return TURN_TIME + (timeStartTimer - System.currentTimeMillis());
+    }
+
+    //    public void sendAutoPlaceRequest() {
 //        Message message = new Message();
 //        message.setType("PVE_AUTO");
 //        out.println(gson.toJson(message));

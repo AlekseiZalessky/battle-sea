@@ -19,7 +19,7 @@ public class Game {
     private Board boardOpponent;
     private Player turnPlayer;
     private Player winner;
-    public static final int TURN_TIME = 5;
+    public static final int TURN_TIME = 10;
 
     public Game(Player creator, Board boardCreator, Player opponent, GameMode gameMode) {
         this.id = UUID.randomUUID();

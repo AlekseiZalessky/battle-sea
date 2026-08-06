@@ -2,7 +2,10 @@ package com.battlesea.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.battlesea.Client.Client;
@@ -10,6 +13,7 @@ import com.battlesea.Main;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
+import com.battlesea.model.Player;
 
 
 public class BattleScreen implements Screen {
@@ -22,9 +26,14 @@ public class BattleScreen implements Screen {
     private Texture cellHalo;
     private Texture cellMiss;
     private Texture cellHit;
+    private Texture arrowRed;
+    private Texture arrowGreen;
     private Main game;
     private GameMode gamemode;
     private final Vector2 position;
+    private BitmapFont font;
+    private float arrowX = 380;
+    private float arrowY = 150;
 
     public BattleScreen(Client client, Main game, GameMode gamemode) {
         this.client = client;
@@ -36,15 +45,21 @@ public class BattleScreen implements Screen {
     @Override
     public void show() {
         batch = new SpriteBatch();
+        font = new BitmapFont();
+        font.getData().setScale(2f);
         cellEmpty = new Texture("cellEmpty.png");
         cellShip = new Texture("cellShip.png");
         cellHalo = new Texture("cellHalo.png");
         cellMiss = new Texture("cellMiss.png");
         cellHit = new Texture("cellHit.png");
+        arrowRed = new Texture("arrowRed.png");
+        arrowGreen = new Texture("arrowGreen.png");
     }
 
     @Override
     public void render(float delta) {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         update();
         if (client == null) {
             return;
@@ -75,9 +90,17 @@ public class BattleScreen implements Screen {
             drawEmptyBoard(batch);
         }
 
+        drawArrow(batch);
+        drawTimer(batch);
+
         batch.end();
 
         if (client.isGameOver()) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             game.setScreen(new GameOverScreen(client, game));
         }
     }
@@ -151,6 +174,26 @@ public class BattleScreen implements Screen {
 //                }
 //            }
 //        }
+    }
+
+    private void drawArrow(SpriteBatch batch) {
+        if(client.getTurnPlayer().equals(client.getCurrentPlayer())) {
+            batch.draw(arrowGreen, arrowX, arrowY);
+        } else {
+            batch.draw(arrowRed, arrowX, arrowY);
+        }
+    }
+
+    private void drawTimer(SpriteBatch batch) {
+        long turnTime = Math.abs(client.getTurnTime()) / 1000;
+
+        if (turnTime <= 0) return;
+
+        String timeText =String.valueOf(turnTime);
+        font.setColor(Color.BLACK);
+        font.draw(batch, timeText, arrowX + 30, arrowY + 60);
+        // ✅ Сбрасываем цвет
+        font.setColor(Color.WHITE);
     }
 
     private void drawEmptyBoard(SpriteBatch batch) {

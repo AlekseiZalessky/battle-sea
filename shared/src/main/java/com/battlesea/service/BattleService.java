@@ -22,23 +22,14 @@ public class BattleService {
         turnPlayer = game.getTurnPlayer();
     }
 
-    public void startGame(Game game) {
-        if (game == null) {
-            throw new NullPointerException("Game is null");
-        }
-//        this.game = game;
-    }
-
-    public Cell shoot(Game game1, Coordinate coordinate) {
-//        this.game = game;
-//        this.turnPlayer = game.getTurnPlayer();
+    public Cell shoot(Coordinate coordinate) {
         int x = coordinate.x();
         int y = coordinate.y();
         if (!validateCoordinate(x, y)) {
             throw new IllegalArgumentException("Coordinates are invalid");
         }
 
-//        turnPlayer = game.getTurnPlayer();
+        turnPlayer = game.getTurnPlayer();
 
         if (turnPlayer == null) {
             throw new NullPointerException("Turn player is null");

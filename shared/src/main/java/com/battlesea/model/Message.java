@@ -14,6 +14,7 @@ public class Message {
     private Player currentPlayer;
     private Player creator;
     private Player opponent;
+    private long timeStartTurn;
 
 
     public Message() {
@@ -106,6 +107,14 @@ public class Message {
 
     public void setOpponent(Player opponent) {
         this.opponent = opponent;
+    }
+
+    public long getTimeStartTurn() {
+        return timeStartTurn;
+    }
+
+    public void setTimeStartTurn(long timeStartTurn) {
+        this.timeStartTurn = timeStartTurn;
     }
 
     @Override
