@@ -1,11 +1,13 @@
 package com.battlesea.service;
 
 import com.battlesea.enums.Cell;
+import com.battlesea.enums.GameStatus;
 import com.battlesea.enums.TypeShip;
 import com.battlesea.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class BattleService {
@@ -165,12 +167,14 @@ public class BattleService {
         return game;
     }
 
-    public void winner(){
+    public void endGame(){
         if(game.getTurnPlayer().equals(game.getCreator())){
             game.setWinner(game.getCreator());
         } else {
             game.setWinner(game.getOpponent());
         }
+        game.setGameStatus(GameStatus.ENDED);
+        game.setEndTime(LocalDateTime.now());
     }
 
     public void switchTurnPlayer() {
@@ -197,5 +201,9 @@ public class BattleService {
 
     public void setTurnPlayer(Player turnPlayer) {
         this.turnPlayer = turnPlayer;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
     }
 }

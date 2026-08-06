@@ -1,4 +1,4 @@
-package com.battlesea.Client;
+package com.battlesea.client;
 
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
@@ -31,7 +31,7 @@ public class Client {
     private boolean gameOver;
     private Player currnetPlayer;
     private Player creator;
-    private Player opponent;
+//    private Player opponent;
     private boolean isStartingGame;
     private boolean timeOut;
     private static final Logger log = LoggerFactory.getLogger(Client.class);
@@ -44,7 +44,7 @@ public class Client {
         game = null;
         gameOver = false;
         creator = null;
-        opponent = null;
+//        opponent = null;
         isStartingGame = false;
         timeOut = false;
     }
@@ -91,7 +91,7 @@ public class Client {
                     String json = in.readLine();
                     log.debug("Получено сообщение: {}", json);
                     if (json == null) {
-                        break;
+                        continue;
                     }
                     Message message = gson.fromJson(json, Message.class);
                     if ("AUTO_PLACE_SUCCESS".equals(message.getType())) {
@@ -139,7 +139,17 @@ public class Client {
                         log.info("GAME_OVER");
                         game = message.getGame();
                         update();
-                        System.out.println(game);
+                        log.debug("game: {}", game);
+                        gameOver = true;
+                    }
+
+                    if ("ABORTING_SUCCESS".equals(message.getType())) {
+                        Thread.sleep(2000);
+                        log.info("ABORTING_SUCCESS");
+                        game = message.getGame();
+                        update();
+                        log.debug("game: {}", game);
+                        log.debug("game.getWinner(): {}", game.getWinner());
                         gameOver = true;
                     }
 
@@ -165,7 +175,7 @@ public class Client {
 
     private void update() {
         creator = game.getCreator();
-        opponent = game.getOpponent();
+//        opponent = game.getOpponent();
         boardCreator = game.getBoardCreator();
         boardOpponent = game.getBoardOpponent();
     }
@@ -182,6 +192,10 @@ public class Client {
         return gameOver;
     }
 
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
+    }
+
     public boolean isStartingGame() {
         return isStartingGame;
     }
@@ -190,9 +204,9 @@ public class Client {
         return creator;
     }
 
-    public Player getOpponentPlayer() {
-        return opponent;
-    }
+//    public Player getOpponentPlayer() {
+//        return opponent;
+//    }
 
     public Player getCurrentPlayer() {
         return currnetPlayer;
@@ -206,25 +220,13 @@ public class Client {
         return game.getWinner();
     }
 
-    public Game getGame() {
-        return game;
-    }
+//    public Game getGame() {
+//        return game;
+//    }
 
     public long getTurnTime() {
         return TURN_TIME + (timeStartTimer - System.currentTimeMillis());
     }
-
-    //    public void sendAutoPlaceRequest() {
-//        Message message = new Message();
-//        message.setType("PVE_AUTO");
-//        out.println(gson.toJson(message));
-//    }
-
-//    public void sendStartGame() {
-//        Message message = new Message();
-//        message.setType("START_GAME_PVE");
-//        out.println(gson.toJson(message));
-//    }
 
     public void sendMessage(String type) {
         log.debug("sendMessage: {}", type);

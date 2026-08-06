@@ -2,21 +2,18 @@ package com.battlesea.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.battlesea.Client.Client;
+import com.battlesea.client.Client;
 import com.battlesea.Main;
+import com.battlesea.button.ButtonFactory;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
@@ -29,7 +26,6 @@ public class PlacementScreen implements Screen {
     private Client client;
     private SpriteBatch batch;
     private Board boardPlayer1;
-    private Board boardPlayer2;
     private Texture cellEmpty;
     private Texture cellShip;
     private Texture cellHalo;
@@ -53,73 +49,18 @@ public class PlacementScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        // Создаём текстуры для кнопок
-        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        TextButton autoButton  = ButtonFactory.createAutoButton(client, font);
+        stage.addActor(autoButton);
 
-        // Активная кнопка (синяя)
-        pixmap.setColor(0.2f, 0.4f, 0.6f, 1);
-        pixmap.fill();
-        Texture activeTexture = new Texture(pixmap);
-        TextureRegionDrawable activeUp = new TextureRegionDrawable(new TextureRegion(activeTexture));
-
-        // Неактивная кнопка (серая)
-        pixmap.setColor(0.4f, 0.4f, 0.4f, 1);
-        pixmap.fill();
-        Texture disabledTexture = new Texture(pixmap);
-        TextureRegionDrawable disabledUp = new TextureRegionDrawable(new TextureRegion(disabledTexture));
-
-        // Кнопка при наведении (светло-синяя)
-        pixmap.setColor(0.3f, 0.5f, 0.7f, 1);
-        pixmap.fill();
-        Texture overTexture = new Texture(pixmap);
-        TextureRegionDrawable overUp = new TextureRegionDrawable(new TextureRegion(overTexture));
-
-        // Кнопка при нажатии (темно-синяя)
-        pixmap.setColor(0.1f, 0.2f, 0.4f, 1);
-        pixmap.fill();
-        Texture downTexture = new Texture(pixmap);
-        TextureRegionDrawable downUp = new TextureRegionDrawable(new TextureRegion(downTexture));
-
-        pixmap.dispose();
-
-        // Создаём стиль для кнопки
-        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-        buttonStyle.font = font;
-        buttonStyle.fontColor = Color.WHITE;
-        buttonStyle.up = activeUp;
-        buttonStyle.over = overUp;
-        buttonStyle.down = downUp;
-        buttonStyle.disabledFontColor = Color.GRAY; // Цвет текста для неактивной кнопки
-        buttonStyle.disabled = disabledUp; // Фон для неактивной кнопки
-
-        TextButton pveButton = new TextButton("AUTO", buttonStyle);
-        pveButton.setSize(100, 60);
-        pveButton.setPosition(500, 200);
-        pveButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                System.out.println("click auto");
-                timeout(200);
-                client.sendMessage("AUTO_PLACE");
-            }
-        });
-        stage.addActor(pveButton);
-
-        startGame = new TextButton("START", buttonStyle);
-        startGame.setSize(100, 60);
-        startGame.setPosition(700, 200);
-        startGame.setDisabled(true);
+        startGame = ButtonFactory.createStartButton(font);
         startGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (!startGame.isDisabled()) {
                     System.out.println("click start");
-
-
                     if(gameMode == GameMode.PVE) {
                         client.sendMessage("START_GAME_PVE");
                         timeout(2000);
-
                         game.setScreen(new BattleScreen(client, game, gameMode));
                     } else  {
                         client.sendMessage("START_GAME_PVP_ONLINE");
@@ -130,6 +71,19 @@ public class PlacementScreen implements Screen {
             }
         });
         stage.addActor(startGame);
+
+        // Кнопка возврата в меню
+        TextButton menuButton = ButtonFactory.createMenuButton(font);
+        menuButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("click menu");
+                client.setGameOver(true);
+                client.updateOnStartGame();
+                game.setScreen(new MenuScreen(client, game));
+            }
+        });
+        stage.addActor(menuButton);
     }
 
     private static void timeout(int time) {
@@ -215,13 +169,34 @@ public class PlacementScreen implements Screen {
 
     @Override
     public void hide() {
-        stage.dispose();
-        font.dispose();
+        dispose();
     }
 
     @Override
     public void dispose() {
-        stage.dispose();
-        font.dispose();
+        if (batch != null) {
+            batch.dispose();
+            batch = null;
+        }
+        if (font != null) {
+            font.dispose();
+            font = null;
+        }
+        if (stage != null) {
+            stage.dispose();
+            stage = null;
+        }
+        if (cellEmpty != null) {
+            cellEmpty.dispose();
+            cellEmpty = null;
+        }
+        if (cellShip != null) {
+            cellShip.dispose();
+            cellShip = null;
+        }
+        if (cellHalo != null) {
+            cellHalo.dispose();
+            cellHalo = null;
+        }
     }
 }

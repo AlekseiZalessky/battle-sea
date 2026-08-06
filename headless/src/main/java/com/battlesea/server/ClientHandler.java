@@ -2,6 +2,7 @@ package com.battlesea.server;
 
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
+import com.battlesea.enums.GameStatus;
 import com.battlesea.model.*;
 import com.battlesea.service.AIService;
 import com.battlesea.service.BattleService;
@@ -87,6 +88,15 @@ public class ClientHandler {
                 }
 
                 if ("AUTO_PLACE".equals(input.getType())) {
+                    log.debug("""
+                            playerBoard: {},
+                            game: {},
+                            gameSession: {},
+                            aiService: {},
+                            turnAI: {},
+                            gameOver: {},
+                            battleService: {}"""
+                        , playerBoard, game, gameSession, aiService, turnAI, gameOver, battleService);
                     log.debug("AUTO_PLACE");
                     ShipPlacementService service = new ShipPlacementService();
                     playerBoard = service.generateRandomShips(player);
@@ -140,6 +150,31 @@ public class ClientHandler {
 
                 }
 
+                if ("ABORTING".equals(input.getType())) {
+                    log.debug("ABORTING");
+                    if (player.equals(game.getCreator())) {
+                        game.setWinner(game.getOpponent());
+                    } else {
+                        game.setWinner(game.getCreator());
+                    }
+                    game.setEndTime(LocalDateTime.now());
+                    game.setGameStatus(GameStatus.ABORTED);
+                    battleService.setGameOver(true);
+                    turnAI = false;
+                    log.debug("game: {}", game);
+                    Message response = new Message();
+                    response.setType("ABORTING_SUCCESS");
+                    response.setGame(game);
+                    broadcastToGamePlayers(gameServer, response);
+                    gameServer.removeGameSession(game.getId());
+                    cancelTimers();
+                }
+
+                if ("ABORT_WAITING".equals(input.getType())) {
+                    log.debug("ABORT_WAITING");
+                    gameService.deleteGameFromCreatedGames(game);
+                    updateFields();
+                }
 
                 if ("SHOOT".equals(input.getType())) {
                     if (gameOver) {
@@ -364,26 +399,39 @@ public class ClientHandler {
         turnAI = false;
         gameOver = false;
         battleService = null;
+        log.debug("""
+                playerBoard: {},
+                game: {},
+                gameSession: {},
+                aiService: {},
+                turnAI: {},
+                gameOver: {},
+                battleService: {}"""
+            , playerBoard, game, gameSession, aiService, turnAI, gameOver, battleService);
     }
 
     private void isGameOver() {
         gameOver = battleService.isGameOver();
         if (gameOver) {
             log.info("Game Over");
-            cancelTimer();
-            ClientHandler nextPlayerHandler = gameServer.getClientHandler(game.getTurnPlayer());
-            log.debug("nextPlayerHandler: {}", nextPlayerHandler);
-            if (nextPlayerHandler != null) {
-                nextPlayerHandler.cancelTimer();
-            }
-            battleService.winner();
+            cancelTimers();
+            battleService.endGame();
             turnAI = false;
             log.debug("game: {}", game);
-            gameServer.removeGameSession(game.getId());
             Message response = new Message();
             response.setType("GAME_OVER");
             response.setGame(game);
             broadcastToGamePlayers(gameServer, response);
+            gameServer.removeGameSession(game.getId());
+        }
+    }
+
+    private void cancelTimers() {
+        cancelTimer();
+        ClientHandler nextPlayerHandler = gameServer.getClientHandler(game.getTurnPlayer());
+        log.debug("nextPlayerHandler: {}", nextPlayerHandler);
+        if (nextPlayerHandler != null) {
+            nextPlayerHandler.cancelTimer();
         }
     }
 

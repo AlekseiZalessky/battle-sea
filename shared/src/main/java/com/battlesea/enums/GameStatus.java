@@ -4,5 +4,6 @@ public enum GameStatus {
     CREATED,
     STARTED,
     ENDED,
-    WAITING
+    WAITING,
+    ABORTED
 }

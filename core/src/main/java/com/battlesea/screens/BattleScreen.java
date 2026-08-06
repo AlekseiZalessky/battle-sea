@@ -8,12 +8,15 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.battlesea.Client.Client;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.battlesea.client.Client;
 import com.battlesea.Main;
+import com.battlesea.button.ButtonFactory;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
-import com.battlesea.model.Player;
 
 
 public class BattleScreen implements Screen {
@@ -34,6 +37,7 @@ public class BattleScreen implements Screen {
     private BitmapFont font;
     private float arrowX = 380;
     private float arrowY = 150;
+    private Stage stage;
 
     public BattleScreen(Client client, Main game, GameMode gamemode) {
         this.client = client;
@@ -54,6 +58,12 @@ public class BattleScreen implements Screen {
         cellHit = new Texture("cellHit.png");
         arrowRed = new Texture("arrowRed.png");
         arrowGreen = new Texture("arrowGreen.png");
+        stage = new Stage(new ScreenViewport());
+        Gdx.input.setInputProcessor(stage);
+
+        // Кнопка сдаться
+        TextButton abortButton = ButtonFactory.createAbortButton(client, font);
+        stage.addActor(abortButton);
     }
 
     @Override
@@ -63,9 +73,10 @@ public class BattleScreen implements Screen {
         if (client == null) {
             return;
         }
-        if(!client.isStartingGame()){
+        if (!client.isStartingGame()) {
             return;
         }
+
         update();
 
         Board boardCurrentPlayer;
@@ -98,6 +109,9 @@ public class BattleScreen implements Screen {
         drawTimer(batch);
 
         batch.end();
+
+        stage.act(delta);
+        stage.draw();
 
         if (client.isGameOver()) {
             try {
@@ -161,27 +175,10 @@ public class BattleScreen implements Screen {
                 }
             }
         }
-
-//        Cell[][] cells = board.getCells();
-//        Texture currentTexture;
-//        if (cells != null) {
-//            for (int i = 0; i < 10; i++) {
-//                for (int j = 0; j < 10; j++) {
-//                    currentTexture = switch (cells[i][j]) {
-//                        case MISS -> cellMiss;
-//                        case HIT -> cellHit;
-//                        case HALO -> cellHalo;
-//                        case SHIP -> cellShip;
-//                        default -> cellEmpty;
-//                    };
-//                    batch.draw(currentTexture, 32 * i + 500, 32 * j + 50);
-//                }
-//            }
-//        }
     }
 
     private void drawArrow(SpriteBatch batch) {
-        if(client.getTurnPlayer().equals(client.getCurrentPlayer())) {
+        if (client.getTurnPlayer().equals(client.getCurrentPlayer())) {
             batch.draw(arrowGreen, arrowX, arrowY);
         } else {
             batch.draw(arrowRed, arrowX, arrowY);
@@ -193,7 +190,7 @@ public class BattleScreen implements Screen {
 
         if (turnTime <= 0) return;
 
-        String timeText =String.valueOf(turnTime);
+        String timeText = String.valueOf(turnTime);
         font.setColor(Color.BLACK);
         font.draw(batch, timeText, arrowX + 30, arrowY + 60);
         // ✅ Сбрасываем цвет
@@ -234,7 +231,46 @@ public class BattleScreen implements Screen {
 
     @Override
     public void dispose() {
-        batch.dispose();
-        cellEmpty.dispose();
+        if (batch != null) {
+            batch.dispose();
+            batch = null;
+        }
+        if (font != null) {
+            font.dispose();
+            font = null;
+        }
+        if (stage != null) {
+            stage.dispose();
+            stage = null;
+        }
+
+        if (cellEmpty != null) {
+            cellEmpty.dispose();
+            cellEmpty = null;
+        }
+        if (cellShip != null) {
+            cellShip.dispose();
+            cellShip = null;
+        }
+        if (cellHalo != null) {
+            cellHalo.dispose();
+            cellHalo = null;
+        }
+        if (cellMiss != null) {
+            cellMiss.dispose();
+            cellMiss = null;
+        }
+        if (cellHit != null) {
+            cellHit.dispose();
+            cellHit = null;
+        }
+        if (arrowRed != null) {
+            arrowRed.dispose();
+            arrowRed = null;
+        }
+        if (arrowGreen != null) {
+            arrowGreen.dispose();
+            arrowGreen = null;
+        }
     }
 }

@@ -3,19 +3,13 @@ package com.battlesea.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.battlesea.Client.Client;
+import com.battlesea.client.Client;
 import com.battlesea.Main;
-import com.battlesea.enums.GameMode;
+import com.battlesea.button.ButtonFactory;
 
 public class MenuScreen implements Screen {
     private final Main game;
@@ -34,50 +28,12 @@ public class MenuScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        // Создаём простую текстуру для кнопки
-        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0.2f, 0.4f, 0.6f, 1); // синий цвет
-        pixmap.fill();
-        Texture texture = new Texture(pixmap);
-        pixmap.dispose();
-
-        TextureRegionDrawable buttonUp = new TextureRegionDrawable(new TextureRegion(texture));
-
-        // Создаём стиль
-        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
-        buttonStyle.font = font;
-        buttonStyle.up = buttonUp; // ← добавляем фон
-
         // Кнопка режим PvE
-        TextButton pveButton = new TextButton("PvE", buttonStyle);
-        pveButton.setSize(100, 60);
-        pveButton.setPosition(
-            (Gdx.graphics.getWidth() - 400) / 4,
-            (Gdx.graphics.getHeight() - 60) / 2
-        );
-        pveButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                System.out.println("click PVE");
-                game.setScreen(new PlacementScreen(client, game, GameMode.PVE));
-            }
-        });
+        TextButton pveButton = ButtonFactory.createPvEButton(game, client, font);
         stage.addActor(pveButton);
 
         // Кнопка режим Online
-        TextButton onlineButton = new TextButton("Online", buttonStyle);
-        onlineButton.setSize(100, 60);
-        onlineButton.setPosition(
-            (Gdx.graphics.getWidth() - 400) / 2,
-            (Gdx.graphics.getHeight() - 60) / 2
-        );
-        onlineButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                System.out.println("click Online");
-                game.setScreen(new PlacementScreen(client, game, GameMode.PVP_ONLINE));
-            }
-        });
+        TextButton onlineButton = ButtonFactory.createOnlineButton(game, client, font);
         stage.addActor(onlineButton);
     }
 
@@ -106,7 +62,13 @@ public class MenuScreen implements Screen {
 
     @Override
     public void dispose() {
-        stage.dispose();
-        font.dispose();
+        if (stage != null) {
+            stage.dispose();
+            stage = null;
+        }
+        if (font != null) {
+            font.dispose();
+            font = null;
+        }
     }
 }
