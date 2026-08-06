@@ -66,7 +66,9 @@ public class GameOverScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("Возврат в меню из TimeOutScreen");
                 dispose();  // ← очищаем ресурсы
-                game.setScreen(new MenuScreen(game));
+                client.sendMessage("UPDATE_FIELDS");
+                client.updateOnStartGame();
+                game.setScreen(new MenuScreen(client, game));
             }
         });
         stage.addActor(menuButton);

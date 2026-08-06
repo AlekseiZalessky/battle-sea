@@ -38,16 +38,16 @@ public class Client {
     private final int TURN_TIME = (Game.TURN_TIME + 1) * 1000;
     private long timeStartTimer;
 
-//    public void updateOnStartGame(){
-//        boardCreator = null;
-//        boardOpponent = null;
-//        game = null;
-//        gameOver = false;
-//        creator = null;
-//        opponent = null;
-//        isStartingGame = false;
-//        timeOut = false;
-//    }
+    public void updateOnStartGame(){
+        boardCreator = null;
+        boardOpponent = null;
+        game = null;
+        gameOver = false;
+        creator = null;
+        opponent = null;
+        isStartingGame = false;
+        timeOut = false;
+    }
 
     public Client(String host, int port) throws Exception {
         this.socket = new Socket(host, port);
@@ -94,10 +94,9 @@ public class Client {
                         break;
                     }
                     Message message = gson.fromJson(json, Message.class);
-                    if ("PVE_SUCCESS".equals(message.getType())) {
-                        log.info("PVE_SUCCESS");
-                        boardCreator = message.getBoardPlayer1();
-                        opponent = message.getOpponent();
+                    if ("AUTO_PLACE_SUCCESS".equals(message.getType())) {
+                        log.info("AUTO_PLACE_SUCCESS");
+                        boardCreator = message.getBoardCreator();
                         continue;
                     }
 
@@ -107,7 +106,7 @@ public class Client {
                         isStartingGame = true;
                         game = message.getGame();
                         log.debug("game: {}", game);
-                        update(game);
+                        update();
                         continue;
                     }
 
@@ -115,7 +114,7 @@ public class Client {
                         log.info("START_GAME_PVP_ONLINE_SUCCESS");
                         timeStartTimer = message.getTimeStartTurn();
                         game = message.getGame();
-                        update(game);
+                        update();
                         isStartingGame = true;
                         continue;
                     }
@@ -131,7 +130,7 @@ public class Client {
                         }
 //                        playShootSound();
                         game = message.getGame();
-                        update(game);
+                        update();
                         continue;
                     }
 
@@ -139,7 +138,7 @@ public class Client {
                         Thread.sleep(2000);
                         log.info("GAME_OVER");
                         game = message.getGame();
-                        update(game);
+                        update();
                         System.out.println(game);
                         gameOver = true;
                     }
@@ -163,12 +162,11 @@ public class Client {
         }).start();
     }
 
-    private void update(Game game) {
+    private void update() {
         creator = game.getCreator();
         opponent = game.getOpponent();
         boardCreator = game.getBoardCreator();
         boardOpponent = game.getBoardOpponent();
-
     }
 
     public Board getBoardCreator() {
@@ -228,6 +226,7 @@ public class Client {
 //    }
 
     public void sendMessage(String type) {
+        log.debug("sendMessage: {}", type);
         Message message = new Message();
         message.setType(type);
         out.println(gson.toJson(message));

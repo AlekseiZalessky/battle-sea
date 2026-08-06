@@ -7,8 +7,8 @@ public class Message {
     private String username;
     private int x;
     private int y;
-    private Board boardPlayer1;
-    private Board boardPlayer2;
+    private Board boardCreator;
+    private Board boardOpponent;
     private Game game;
     private Cell resultShoot;
     private Player currentPlayer;
@@ -53,20 +53,12 @@ public class Message {
         this.y = y;
     }
 
-    public Board getBoardPlayer1() {
-        return boardPlayer1;
+    public Board getBoardCreator() {
+        return boardCreator;
     }
 
-    public void setBoardPlayer1(Board boardPlayer1) {
-        this.boardPlayer1 = boardPlayer1;
-    }
-
-    public Board getBoardPlayer2() {
-        return boardPlayer2;
-    }
-
-    public void setBoardPlayer2(Board boardPlayer2) {
-        this.boardPlayer2 = boardPlayer2;
+    public void setBoardCreator(Board boardCreator) {
+        this.boardCreator = boardCreator;
     }
 
     public Game getGame() {
@@ -93,9 +85,6 @@ public class Message {
         this.currentPlayer = currentPlayer;
     }
 
-    public Player getCreator() {
-        return creator;
-    }
 
     public void setCreator(Player creator) {
         this.creator = creator;
@@ -124,8 +113,8 @@ public class Message {
             ", username='" + username + '\'' +
             ", x=" + x +
             ", y=" + y +
-            ", boardPlayer1=" + boardPlayer1 +
-            ", boardPlayer2=" + boardPlayer2 +
+            ", boardPlayer1=" + boardCreator +
+            ", boardPlayer2=" + boardOpponent +
             ", game=" + game +
             ", resultShoot=" + resultShoot +
             ", turnPlayer=" + currentPlayer +

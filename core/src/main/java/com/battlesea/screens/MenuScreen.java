@@ -23,18 +23,13 @@ public class MenuScreen implements Screen {
     private BitmapFont font;
     private Client client;
 
-    public MenuScreen(Main game) {
+    public MenuScreen(Client client, Main game) {
         this.game = game;
+        this.client = client;
     }
 
     @Override
     public void show() {
-
-        try {
-            client = new Client("localhost", 8189);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
         font = new BitmapFont();
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class BattleService {
-    private Game game;
+    private final Game game;
     private final int SIZE_BOARD = Board.SIZE;
     private Board targetBoard;
     private boolean gameOver;

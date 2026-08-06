@@ -65,7 +65,7 @@ public class TimeOutScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("Возврат в меню из TimeOutScreen");
                 dispose();  // ← очищаем ресурсы
-                game.setScreen(new MenuScreen(game));
+                game.setScreen(new MenuScreen(client, game));
             }
         });
         stage.addActor(menuButton);

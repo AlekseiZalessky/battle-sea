@@ -15,11 +15,11 @@ import java.util.Random;
 
 public class GameService {
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
-    private final ShipPlacementService shipPlacementService;
+    private ShipPlacementService shipPlacementService;
     private static final List<Game> createdGames = new ArrayList<>();
 
     public GameService() {
-        shipPlacementService = new ShipPlacementService();
+
     }
 
     public Game startGame(Player player, Board board, GameMode gameMode) {
@@ -27,6 +27,7 @@ public class GameService {
         Player opponent = null;
         Board opponentPlayerBoard = null;
         if (gameMode == com.battlesea.enums.GameMode.PVE) {
+            shipPlacementService = new ShipPlacementService();
             opponent = new Player("Computer");
             game = new Game(player, board, opponent, gameMode);
             opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent);
@@ -76,7 +77,7 @@ public class GameService {
         }
         Random random = new Random();
         boolean turnCreator = random.nextBoolean();
-        if (false) {
+        if (turnCreator) {
             game.setTurnPlayer(game.getCreator());
         } else {
             game.setTurnPlayer(game.getOpponent());

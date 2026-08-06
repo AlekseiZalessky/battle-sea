@@ -100,7 +100,7 @@ public class PlacementScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("click auto");
                 timeout(200);
-                client.sendMessage("PVE_AUTO");
+                client.sendMessage("AUTO_PLACE");
             }
         });
         stage.addActor(pveButton);
