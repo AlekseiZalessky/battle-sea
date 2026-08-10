@@ -32,6 +32,8 @@ public class GameService {
             game = new Game(player, board, opponent, gameMode);
             opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent);
             game.setBoardOpponent(opponentPlayerBoard);
+            randomTurnPlayer(game);
+            game.setGameStatus(GameStatus.STARTED);
         }
 
         if (gameMode == GameMode.PVP_ONLINE) {
@@ -49,6 +51,8 @@ public class GameService {
                 createdGames.remove(game);
                 game.setOpponent(player);
                 game.setBoardOpponent(board);
+                randomTurnPlayer(game);
+                game.setGameStatus(GameStatus.STARTED);
                 log.debug("Player: {} connected to game: {}", player, game);
             }
         }
@@ -58,9 +62,7 @@ public class GameService {
         }
 
         game.setGameMode(gameMode);
-        game.setGameStatus(GameStatus.STARTED);
         game.setStartTime(LocalDateTime.now());
-        randomTurnPlayer(game);
         return game;
     }
 
