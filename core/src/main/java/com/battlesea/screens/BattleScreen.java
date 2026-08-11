@@ -60,13 +60,14 @@ public class BattleScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        if (client == null) {
+            return;
+        }
         if(!client.isStartingGame()){
             return;
         }
         update();
-        if (client == null) {
-            return;
-        }
+
         Board boardCurrentPlayer;
         Board boardOpponentPlayer;
         if (client.getCreatorPlayer().equals(client.getCurrentPlayer())) {

@@ -166,7 +166,7 @@ public class BattleService {
     }
 
     public void winner(){
-        if(game.getTurnPlayer() == game.getCreator()){
+        if(game.getTurnPlayer().equals(game.getCreator())){
             game.setWinner(game.getCreator());
         } else {
             game.setWinner(game.getOpponent());
@@ -193,5 +193,9 @@ public class BattleService {
 
     public int getCounter() {
         return counter;
+    }
+
+    public void setTurnPlayer(Player turnPlayer) {
+        this.turnPlayer = turnPlayer;
     }
 }

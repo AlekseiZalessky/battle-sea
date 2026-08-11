@@ -151,6 +151,7 @@ public class Client {
                     if ("TURN_TIMEOUT".equals(message.getType())) {
                         log.debug("TURN_TIMEOUT");
                         game = message.getGame();
+                        timeStartTimer = message.getTimeStartTurn();
                         if (game.getTurnPlayer().equals(game.getOpponent())) {
                             sendMessage("SWITCH_TURN");
                         }
