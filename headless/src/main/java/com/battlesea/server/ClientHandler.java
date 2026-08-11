@@ -38,7 +38,6 @@ public class ClientHandler {
     private final int TURN_TIME = Game.TURN_TIME;
     private long lastActionTime;
     private Player player;
-//    private ClientHandler opponentClientHandler;
 
 
     public ClientHandler(Socket socket, GameServer gameServer) throws Exception {
@@ -372,9 +371,15 @@ public class ClientHandler {
         if (gameOver) {
             log.info("Game Over");
             cancelTimer();
+            ClientHandler nextPlayerHandler = gameServer.getClientHandler(game.getTurnPlayer());
+            log.debug("nextPlayerHandler: {}", nextPlayerHandler);
+            if (nextPlayerHandler != null) {
+                nextPlayerHandler.cancelTimer();
+            }
             battleService.winner();
             turnAI = false;
             log.debug("game: {}", game);
+            gameServer.removeGameSession(game.getId());
             Message response = new Message();
             response.setType("GAME_OVER");
             response.setGame(game);
