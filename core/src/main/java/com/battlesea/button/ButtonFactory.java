@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import com.battlesea.client.Client;
 import com.battlesea.Main;
+import com.battlesea.constants.Commands;
 import com.battlesea.enums.GameMode;
 import com.battlesea.screens.*;
 
@@ -36,7 +37,7 @@ public class ButtonFactory {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("click abort");
-                client.sendMessage("ABORTING");
+                client.sendMessage(Commands.ABORTING);
                 client.setGameOver(true);
             }
         });
@@ -66,7 +67,7 @@ public class ButtonFactory {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                client.sendMessage("AUTO_PLACE");
+                client.sendMessage(Commands.AUTO_PLACE);
             }
         });
         return button;

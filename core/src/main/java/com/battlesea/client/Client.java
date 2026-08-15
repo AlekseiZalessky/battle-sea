@@ -1,5 +1,6 @@
 package com.battlesea.client;
 
+import com.battlesea.constants.Commands;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
@@ -66,7 +67,7 @@ public class Client {
             try {
                 while (true) {
                     Message message = new Message();
-                    message.setType("AUTH");
+                    message.setType(Commands.AUTH);
                     Random rand = new Random();
                     message.setUsername("player" + rand.nextInt(10000));
 
@@ -79,9 +80,9 @@ public class Client {
 
                     message = gson.fromJson(json, Message.class);
 
-                    if ("AUTH_SUCCESS".equals(message.getType())) {
+                    if (Commands.AUTH_SUCCESS.equals(message.getType())) {
                         currnetPlayer = message.getCurrentPlayer();
-                        log.info("AUTH_SUCCESS");
+                        log.info(Commands.AUTH_SUCCESS);
                         log.info("Current Player : {}", currnetPlayer.getName());
                         break;
                     }
@@ -94,15 +95,15 @@ public class Client {
                         continue;
                     }
                     Message message = gson.fromJson(json, Message.class);
-                    if ("AUTO_PLACE_SUCCESS".equals(message.getType())) {
-                        log.info("AUTO_PLACE_SUCCESS");
+                    if (Commands.AUTO_PLACE_SUCCESS.equals(message.getType())) {
+                        log.info(Commands.AUTO_PLACE_SUCCESS);
                         boardCreator = message.getBoardCreator();
                         continue;
                     }
 
-                    if ("START_GAME_PVE_SUCCESS".equals(message.getType())) {
+                    if (Commands.START_GAME_PVE_SUCCESS.equals(message.getType())) {
                         timeStartTimer = message.getTimeStartTurn();
-                        log.info("START_GAME_PVE_SUCCESS");
+                        log.info(Commands.START_GAME_PVE_SUCCESS);
                         isStartingGame = true;
                         game = message.getGame();
                         log.debug("game: {}", game);
@@ -110,8 +111,8 @@ public class Client {
                         continue;
                     }
 
-                    if ("START_GAME_PVP_ONLINE_SUCCESS".equals(message.getType())) {
-                        log.info("START_GAME_PVP_ONLINE_SUCCESS");
+                    if (Commands.START_GAME_PVP_ONLINE_SUCCESS.equals(message.getType())) {
+                        log.info(Commands.START_GAME_PVP_ONLINE_SUCCESS);
                         timeStartTimer = message.getTimeStartTurn();
                         game = message.getGame();
                         update();
@@ -119,7 +120,7 @@ public class Client {
                         continue;
                     }
 
-                    if ("RESULT_SHOOT".equals(message.getType())) {
+                    if (Commands.RESULT_SHOOT.equals(message.getType())) {
                         if(game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())){
                             Thread.sleep(500);
                         }
@@ -134,18 +135,18 @@ public class Client {
                         continue;
                     }
 
-                    if ("GAME_OVER".equals(message.getType())) {
+                    if (Commands.GAME_OVER.equals(message.getType())) {
                         Thread.sleep(2000);
-                        log.info("GAME_OVER");
+                        log.info(Commands.GAME_OVER);
                         game = message.getGame();
                         update();
                         log.debug("game: {}", game);
                         gameOver = true;
                     }
 
-                    if ("ABORTING_SUCCESS".equals(message.getType())) {
+                    if (Commands.ABORTING_SUCCESS.equals(message.getType())) {
                         Thread.sleep(2000);
-                        log.info("ABORTING_SUCCESS");
+                        log.info(Commands.ABORTING_SUCCESS);
                         game = message.getGame();
                         update();
                         log.debug("game: {}", game);
@@ -153,17 +154,17 @@ public class Client {
                         gameOver = true;
                     }
 
-                    if ("TIMEOUT".equals(message.getType())) {
+                    if (Commands.TIMEOUT.equals(message.getType())) {
                         timeOut = true;
-                        log.info("TIMEOUT");
+                        log.info(Commands.TIMEOUT);
                     }
 
-                    if ("TURN_TIMEOUT".equals(message.getType())) {
-                        log.debug("TURN_TIMEOUT");
+                    if (Commands.TURN_TIMEOUT.equals(message.getType())) {
+                        log.debug(Commands.TURN_TIMEOUT);
                         game = message.getGame();
                         timeStartTimer = message.getTimeStartTurn();
                         if (game.getTurnPlayer().equals(game.getOpponent())) {
-                            sendMessage("SWITCH_TURN");
+                            sendMessage(Commands.SWITCH_TURN);
                         }
                     }
                 }
@@ -237,7 +238,7 @@ public class Client {
 
     public void sendAttack(int x, int y) {
         Message message = new Message();
-        message.setType("SHOOT");
+        message.setType(Commands.SHOOT);
         message.setX(x);
         message.setY(y);
         message.setCurrentPlayer(currnetPlayer);

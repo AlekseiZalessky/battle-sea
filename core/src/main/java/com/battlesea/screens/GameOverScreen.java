@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.battlesea.client.Client;
 import com.battlesea.Main;
 import com.battlesea.button.ButtonFactory;
+import com.battlesea.constants.Commands;
 
 public class GameOverScreen implements Screen {
     private Main game;
@@ -50,7 +51,7 @@ public class GameOverScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 dispose();
-                client.sendMessage("UPDATE_FIELDS");
+                client.sendMessage(Commands.UPDATE_FIELDS);
                 client.updateOnStartGame();
                 game.setScreen(new MenuScreen(client, game));
             }

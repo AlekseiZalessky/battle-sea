@@ -1,5 +1,6 @@
 package com.battlesea.server;
 
+import com.battlesea.constants.Commands;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.enums.GameStatus;
@@ -65,13 +66,13 @@ public class ClientHandler {
                 json = in.readLine();
                 Message input = gson.fromJson(json, Message.class);
                 log.debug("input: {}", input);
-                if ("AUTH".equals(input.getType())) {
+                if (Commands.AUTH.equals(input.getType())) {
                     player = new Player();
                     String username = player.getName();
                     gameServer.registerPlayer(player, this);
                     log.debug("avtorizovan igrok: {}", username);
                     Message response = new Message();
-                    response.setType("AUTH_SUCCESS");
+                    response.setType(Commands.AUTH_SUCCESS);
                     response.setCurrentPlayer(player);
                     out.println(gson.toJson(response));
                     break;
@@ -82,12 +83,12 @@ public class ClientHandler {
                 json = in.readLine();
                 Message input = gson.fromJson(json, Message.class);
 
-                if ("UPDATE_FIELDS".equals(input.getType())) {
-                    log.debug("UPDATE_FIELDS");
+                if (Commands.UPDATE_FIELDS.equals(input.getType())) {
+                    log.debug(Commands.UPDATE_FIELDS);
                     updateFields();
                 }
 
-                if ("AUTO_PLACE".equals(input.getType())) {
+                if (Commands.AUTO_PLACE.equals(input.getType())) {
                     log.debug("""
                             playerBoard: {},
                             game: {},
@@ -97,20 +98,20 @@ public class ClientHandler {
                             gameOver: {},
                             battleService: {}"""
                         , playerBoard, game, gameSession, aiService, turnAI, gameOver, battleService);
-                    log.debug("AUTO_PLACE");
+                    log.debug(Commands.AUTO_PLACE);
                     ShipPlacementService service = new ShipPlacementService();
                     playerBoard = service.generateRandomShips(player);
 
                     Message response = new Message();
-                    response.setType("AUTO_PLACE_SUCCESS");
+                    response.setType(Commands.AUTO_PLACE_SUCCESS);
                     response.setBoardCreator(playerBoard);
                     String responseJson = gson.toJson(response);
                     out.println(responseJson);
                 }
 
-                if ("START_GAME_PVE".equals(input.getType())) {
+                if (Commands.START_GAME_PVE.equals(input.getType())) {
 
-                    log.debug("START_GAME_PVE");
+                    log.debug(Commands.START_GAME_PVE);
                     game = gameService.startGame(player, playerBoard, GameMode.PVE);
                     log.debug("game: {}", game);
                     gameSession = gameServer.createSession(game);
@@ -123,18 +124,18 @@ public class ClientHandler {
                     } else {
                         lastActionTime = System.currentTimeMillis();
                         timer();
-                        log.debug("START_GAME_PVE start timer()");
+                        log.debug(Commands.START_GAME_PVE + " start timer()");
                     }
                     Message response = new Message();
-                    response.setType("START_GAME_PVE_SUCCESS");
+                    response.setType(Commands.START_GAME_PVE_SUCCESS);
                     response.setGame(game);
                     response.setTimeStartTurn(System.currentTimeMillis());
                     String responseJson = gson.toJson(response);
                     out.println(responseJson);
                 }
 
-                if ("START_GAME_PVP_ONLINE".equals(input.getType())) {
-                    log.debug("START_GAME_PVP_ONLINE");
+                if (Commands.START_GAME_PVP_ONLINE.equals(input.getType())) {
+                    log.debug(Commands.START_GAME_PVP_ONLINE);
                     game = gameService.startGame(player, playerBoard, GameMode.PVP_ONLINE);
                     log.debug("game: {}", game);
                     if (player.equals(game.getCreator())) {
@@ -150,8 +151,8 @@ public class ClientHandler {
 
                 }
 
-                if ("ABORTING".equals(input.getType())) {
-                    log.debug("ABORTING");
+                if (Commands.ABORTING.equals(input.getType())) {
+                    log.debug(Commands.ABORTING);
                     if (player.equals(game.getCreator())) {
                         game.setWinner(game.getOpponent());
                     } else {
@@ -163,24 +164,24 @@ public class ClientHandler {
                     turnAI = false;
                     log.debug("game: {}", game);
                     Message response = new Message();
-                    response.setType("ABORTING_SUCCESS");
+                    response.setType(Commands.ABORTING_SUCCESS);
                     response.setGame(game);
                     broadcastToGamePlayers(gameServer, response);
                     gameServer.removeGameSession(game.getId());
                     cancelTimers();
                 }
 
-                if ("ABORT_WAITING".equals(input.getType())) {
-                    log.debug("ABORT_WAITING");
+                if (Commands.ABORT_WAITING.equals(input.getType())) {
+                    log.debug(Commands.ABORT_WAITING);
                     gameService.deleteGameFromCreatedGames(game);
                     updateFields();
                 }
 
-                if ("SHOOT".equals(input.getType())) {
+                if (Commands.SHOOT.equals(input.getType())) {
                     if (gameOver) {
                         continue;
                     }
-                    log.debug("SHOOT");
+                    log.debug(Commands.SHOOT);
                     Message response = new Message();
                     int x = input.getX();
                     int y = input.getY();
@@ -191,7 +192,7 @@ public class ClientHandler {
                         continue;
                     }
 
-                    response.setType("RESULT_SHOOT");
+                    response.setType(Commands.RESULT_SHOOT);
                     response.setGame(game);
                     response.setX(x);
                     response.setY(y);
@@ -261,7 +262,7 @@ public class ClientHandler {
                         aiService.removeCoordinate(coordinate);
                         aiService.updateFreeCoordinates();
                         Message response = new Message();
-                        response.setType("RESULT_SHOOT");
+                        response.setType(Commands.RESULT_SHOOT);
                         response.setGame(game);
                         response.setResultShoot(resultShoot);
                         response.setTimeStartTurn(System.currentTimeMillis());
@@ -277,8 +278,8 @@ public class ClientHandler {
                         isGameOver();
                     }
 
-                    if ("SWITCH_TURN".equals(input.getType())) {
-                        log.debug("SWITCH_TURN");
+                    if (Commands.SWITCH_TURN.equals(input.getType())) {
+                        log.debug(Commands.SWITCH_TURN);
                         if (game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())) {
                             turnAI = true;
                         }
@@ -299,8 +300,8 @@ public class ClientHandler {
             if (waitingTime[0] >= maxWaitingTime) {
                 gameService.deleteGameFromCreatedGames(game);
                 Message response = new Message();
-                response.setType("TIMEOUT");
-                log.info("TIMEOUT");
+                response.setType(Commands.TIMEOUT);
+                log.info(Commands.TIMEOUT);
                 out.println(gson.toJson(response));
                 timeWaiting.cancel(false);
                 return;
@@ -316,7 +317,7 @@ public class ClientHandler {
                     opponentHandler.cancelTimer();
                 }
 
-                response.setType("START_GAME_PVP_ONLINE_SUCCESS");
+                response.setType(Commands.START_GAME_PVP_ONLINE_SUCCESS);
                 response.setGame(game);
                 response.setTimeStartTurn(System.currentTimeMillis());
                 if (player.equals(game.getTurnPlayer())) {
@@ -355,7 +356,7 @@ public class ClientHandler {
                 return;
             }
             if (System.currentTimeMillis() - lastActionTime >= TURN_TIME * 1000) {
-                log.debug("TURN_TIMEOUT");
+                log.debug(Commands.TURN_TIMEOUT);
                 log.debug("current turnPlayer: {}", game.getTurnPlayer());
                 log.debug("battleService: {}", battleService);
                 battleService.switchTurnPlayer();
@@ -364,7 +365,7 @@ public class ClientHandler {
                     turnAI = true;
                 }
                 Message response = new Message();
-                response.setType("TURN_TIMEOUT");
+                response.setType(Commands.TURN_TIMEOUT);
                 response.setGame(game);
                 response.setTimeStartTurn(System.currentTimeMillis());
                 cancelTimer();
@@ -413,13 +414,13 @@ public class ClientHandler {
     private void isGameOver() {
         gameOver = battleService.isGameOver();
         if (gameOver) {
-            log.info("Game Over");
+            log.info(Commands.GAME_OVER);
             cancelTimers();
             battleService.endGame();
             turnAI = false;
             log.debug("game: {}", game);
             Message response = new Message();
-            response.setType("GAME_OVER");
+            response.setType(Commands.GAME_OVER);
             response.setGame(game);
             broadcastToGamePlayers(gameServer, response);
             gameServer.removeGameSession(game.getId());

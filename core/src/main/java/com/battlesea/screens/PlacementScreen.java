@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.battlesea.client.Client;
 import com.battlesea.Main;
 import com.battlesea.button.ButtonFactory;
+import com.battlesea.constants.Commands;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
@@ -59,11 +60,11 @@ public class PlacementScreen implements Screen {
                 if (!startGame.isDisabled()) {
                     System.out.println("click start");
                     if(gameMode == GameMode.PVE) {
-                        client.sendMessage("START_GAME_PVE");
+                        client.sendMessage(Commands.START_GAME_PVE);
                         timeout(2000);
                         game.setScreen(new BattleScreen(client, game, gameMode));
                     } else  {
-                        client.sendMessage("START_GAME_PVP_ONLINE");
+                        client.sendMessage(Commands.START_GAME_PVP_ONLINE);
                         timeout(1000);
                         game.setScreen(new WaitingStartBattleScreen(client, game, gameMode));
                     }

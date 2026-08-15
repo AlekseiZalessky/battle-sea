@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.battlesea.client.Client;
 import com.battlesea.Main;
 import com.battlesea.button.ButtonFactory;
+import com.battlesea.constants.Commands;
 import com.battlesea.enums.GameMode;
 
 public class WaitingStartBattleScreen implements Screen {
@@ -51,7 +52,7 @@ public class WaitingStartBattleScreen implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("click abort");
-                client.sendMessage("ABORT_WAITING");
+                client.sendMessage(Commands.ABORT_WAITING);
                 client.setGameOver(true);
                 client.updateOnStartGame();
                 dispose();
