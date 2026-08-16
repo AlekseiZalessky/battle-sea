@@ -15,6 +15,7 @@ public class Board {
 
     public Board() {
         this.ships = new ArrayList<>();
+        init();
     }
 
     public void init() {
@@ -23,32 +24,6 @@ public class Board {
                 cells[x][y] = Cell.EMPTY;
             }
         }
-    }
-
-    public void printCells() {
-        for (int x = 0; x < SIZE; x++) {
-            for (int y = 0; y < SIZE; y++) {
-                switch (cells[x][y]) {
-                    case EMPTY:
-                        System.out.print("\u001B[37m" + cells[x][y] + " \u001B[0m");
-                        break;
-                    case HIT:
-                        System.out.print("\u001B[31m" + cells[x][y] + " \u001B[0m");
-                        break;
-                    case MISS:
-                        System.out.print("\u001B[90m" + cells[x][y] + " \u001B[0m");
-                        break;
-                    case SHIP:
-                        System.out.print("\u001B[34m" + cells[x][y] + " \u001B[0m");
-                        break;
-                    case HALO:
-                        System.out.print("\u001B[33m" + cells[x][y] + " \u001B[0m");
-                        break;
-                }
-            }
-            System.out.println();
-        }
-        System.out.println();
     }
 
     public List<Ship> getShips() {

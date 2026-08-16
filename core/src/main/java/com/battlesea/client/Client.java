@@ -3,10 +3,8 @@ package com.battlesea.client;
 import com.battlesea.constants.Commands;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
-import com.battlesea.model.Board;
-import com.battlesea.model.Game;
-import com.battlesea.model.Message;
-import com.battlesea.model.Player;
+import com.battlesea.enums.TypeShip;
+import com.battlesea.model.*;
 import com.google.gson.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +36,9 @@ public class Client {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
     private final int TURN_TIME = (Game.TURN_TIME + 1) * 1000;
     private long timeStartTimer;
+    private boolean allShipPlaced;
+    private boolean placeShipSuccess;
+    private boolean changeOrientationSuccess;
 
     public void updateOnStartGame(){
         boardCreator = null;
@@ -48,6 +49,9 @@ public class Client {
 //        opponent = null;
         isStartingGame = false;
         timeOut = false;
+        allShipPlaced = false;
+        placeShipSuccess = false;
+        changeOrientationSuccess = false;
     }
 
     public Client(String host, int port) throws Exception {
@@ -98,6 +102,37 @@ public class Client {
                     if (Commands.AUTO_PLACE_SUCCESS.equals(message.getType())) {
                         log.info(Commands.AUTO_PLACE_SUCCESS);
                         boardCreator = message.getBoardCreator();
+                        allShipPlaced = true;
+                        continue;
+                    }
+
+                    if (Commands.PLACE_SHIP_SUCCESS.equals(message.getType())) {
+                        log.info(Commands.PLACE_SHIP_SUCCESS);
+                        placeShipSuccess = true;
+                        boardCreator = message.getBoardCreator();
+                        System.out.println(boardCreator);
+                        allShipPlaced = message.isAllShipPlaced();
+                        continue;
+                    }
+
+                    if (Commands.PLACE_SHIP_FAIL.equals(message.getType())) {
+                        log.info(Commands.PLACE_SHIP_FAIL);
+                        placeShipSuccess = false;
+                        boardCreator = message.getBoardCreator();
+                        continue;
+                    }
+
+                    if (Commands.CHANGE_ORIENTATION_SUCCESS.equals(message.getType())) {
+                        log.info(Commands.CHANGE_ORIENTATION_SUCCESS);
+                        boardCreator = message.getBoardCreator();
+                        changeOrientationSuccess =  true;
+                        continue;
+                    }
+
+                    if (Commands.CHANGE_ORIENTATION_FAIL.equals(message.getType())) {
+                        log.info(Commands.CHANGE_ORIENTATION_FAIL);
+                        boardCreator = message.getBoardCreator();
+                        changeOrientationSuccess = false;
                         continue;
                     }
 
@@ -245,8 +280,44 @@ public class Client {
         out.println(gson.toJson(message));
     }
 
+    public void sendPlaceShip(Coordinate coordinate, Coordinate oldCoordinate, TypeShip typeShip, boolean horizontalShip) {
+        Message message = new Message();
+        message.setType(Commands.PLACE_SHIP);
+        message.setBoardCreator(boardCreator);
+        message.setCoordinate(coordinate);
+        message.setOldCoordinate(oldCoordinate);
+        message.setHorizontalShip(horizontalShip);
+        message.setTypeShip(typeShip);
+        out.println(gson.toJson(message));
+        log.debug("send message: {}", message);
+    }
+
+    public void sendChangeOrientation(int x, int y) {
+        Message message = new Message();
+        message.setType(Commands.CHANGE_ORIENTATION);
+        message.setX(x);
+        message.setY(y);
+        out.println(gson.toJson(message));
+    }
+
     public Player getTurnPlayer() {
         return game.getTurnPlayer();
+    }
+
+    public boolean isPlaceShipSuccess() {
+        return placeShipSuccess;
+    }
+
+    public boolean isChangeOrientationSuccess() {
+        return changeOrientationSuccess;
+    }
+
+    public boolean isAllShipPlaced() {
+        return allShipPlaced;
+    }
+
+    public void setPlaceShipSuccess(boolean placeShipSuccess) {
+        this.placeShipSuccess = placeShipSuccess;
     }
 
     public void playShootSound() {

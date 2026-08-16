@@ -1,6 +1,7 @@
 package com.battlesea.model;
 
 import com.battlesea.enums.Cell;
+import com.battlesea.enums.TypeShip;
 
 public class Message {
     private String type;
@@ -15,7 +16,11 @@ public class Message {
     private Player creator;
     private Player opponent;
     private long timeStartTurn;
-
+    private boolean horizontalShip;
+    private TypeShip typeShip;
+    private boolean allShipPlaced;
+    private Coordinate coordinate;
+    private Coordinate oldCoordinate;
 
     public Message() {
 
@@ -104,6 +109,46 @@ public class Message {
 
     public void setTimeStartTurn(long timeStartTurn) {
         this.timeStartTurn = timeStartTurn;
+    }
+
+    public boolean isHorizontalShip() {
+        return horizontalShip;
+    }
+
+    public void setHorizontalShip(boolean horizontalShip) {
+        this.horizontalShip = horizontalShip;
+    }
+
+    public TypeShip getTypeShip() {
+        return typeShip;
+    }
+
+    public void setTypeShip(TypeShip typeShip) {
+        this.typeShip = typeShip;
+    }
+
+    public boolean isAllShipPlaced() {
+        return allShipPlaced;
+    }
+
+    public void setAllShipPlaced(boolean allShipPlaced) {
+        this.allShipPlaced = allShipPlaced;
+    }
+
+    public Coordinate getCoordinate() {
+        return coordinate;
+    }
+
+    public void setCoordinate(Coordinate coordinate) {
+        this.coordinate = coordinate;
+    }
+
+    public Coordinate getOldCoordinate() {
+        return oldCoordinate;
+    }
+
+    public void setOldCoordinate(Coordinate oldCoordinate) {
+        this.oldCoordinate = oldCoordinate;
     }
 
     @Override

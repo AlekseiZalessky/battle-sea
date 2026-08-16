@@ -181,6 +181,7 @@ public class AIService {
             throw new IllegalArgumentException("Invalid coordinate");
         }
         List<Ship> ships = targetBoard.getShips();
+        log.debug("getShip: {}", ships);
         for (Ship ship : ships) {
             if (ship.getCoordinates().contains(coordinate)) {
                 log.debug("Found ship: {}", ship);
@@ -210,6 +211,7 @@ public class AIService {
         if (coordinate == null) {
             throw new IllegalArgumentException("Invalid coordinate");
         }
+        log.debug("coordinate: {}", coordinate);
         Ship ship = getShip(coordinate);
         if (ship == null) {
             throw new NullPointerException("Ship not found");

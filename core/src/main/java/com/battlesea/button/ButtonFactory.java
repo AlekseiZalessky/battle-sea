@@ -48,7 +48,7 @@ public class ButtonFactory {
     public static TextButton createStartButton(BitmapFont font) {
         TextButton button = new TextButton("START", ButtonStyles.createDefaultStyle(font));
         button.setSize(100, 60);
-        button.setPosition(700, 200);
+        button.setPosition(700, 50);
         button.setDisabled(true);
         return button;
     }
@@ -57,7 +57,7 @@ public class ButtonFactory {
     public static TextButton createAutoButton(Client client, BitmapFont font) {
         TextButton button = new TextButton("AUTO", ButtonStyles.createDefaultStyle(font));
         button.setSize(100, 60);
-        button.setPosition(500, 200);
+        button.setPosition(500, 50);
         button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
