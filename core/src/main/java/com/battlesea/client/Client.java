@@ -271,11 +271,10 @@ public class Client {
         out.println(gson.toJson(message));
     }
 
-    public void sendAttack(int x, int y) {
+    public void sendAttack(Coordinate coordinate) {
         Message message = new Message();
         message.setType(Commands.SHOOT);
-        message.setX(x);
-        message.setY(y);
+        message.setCoordinate(coordinate);
         message.setCurrentPlayer(currnetPlayer);
         out.println(gson.toJson(message));
     }
@@ -292,11 +291,10 @@ public class Client {
         log.debug("send message: {}", message);
     }
 
-    public void sendChangeOrientation(int x, int y) {
+    public void sendChangeOrientation(Coordinate coordinate) {
         Message message = new Message();
         message.setType(Commands.CHANGE_ORIENTATION);
-        message.setX(x);
-        message.setY(y);
+        message.setCoordinate(coordinate);
         out.println(gson.toJson(message));
     }
 

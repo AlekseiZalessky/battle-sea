@@ -30,24 +30,30 @@ public class ShipPlacementService {
     /**
      * Метод ручной расстановки корабля
      *
-     * @param player
      * @param firstCoordinate
      * @param horizontalShip
      * @param typeShip
      * @return
      */
-    public boolean placeShipManually(Player player, Coordinate firstCoordinate, boolean horizontalShip, TypeShip typeShip) {
+    public boolean placeShipManually(Coordinate firstCoordinate, boolean horizontalShip, TypeShip typeShip) {
         log.debug("placeShip");
         log.debug("firstCoordinate: {}", firstCoordinate);
         if (firstCoordinate == null) {
             throw new IllegalArgumentException("First coordinate is null");
         }
-        if (!validateCoordinate(firstCoordinate.x(), firstCoordinate.y())) {
+        if (typeShip == null) {
+            throw new IllegalArgumentException("TypeShip is null");
+        }
+        if (board == null) {
+            throw new IllegalStateException("Board is not initialized");
+        }
+        if (!validateCoordinate(firstCoordinate)) {
             return false;
         }
         if (!validateCountShip(typeShip)) {
             return false;
         }
+
         int size = typeShip.getSize();
         Cell[][] cells = board.getCells();
 
@@ -60,12 +66,18 @@ public class ShipPlacementService {
         return result;
     }
 
-    public boolean relocateShip(Player player, Coordinate newCoordinate, Coordinate oldCoordinate) {
-        if (oldCoordinate == null || newCoordinate == null) {
-            throw new IllegalArgumentException("First coordinate is null");
+    public boolean relocateShip(Coordinate newCoordinate, Coordinate oldCoordinate) {
+        if (newCoordinate == null) {
+            throw new IllegalArgumentException("New coordinate is null");
         }
-        if (!validateCoordinate(oldCoordinate.x(), oldCoordinate.y()) || !validateCoordinate(newCoordinate.x(), newCoordinate.y())) {
+        if (oldCoordinate == null) {
+            throw new IllegalArgumentException("Old coordinate is null");
+        }
+        if (!validateCoordinate(oldCoordinate) || !validateCoordinate(newCoordinate)) {
             return false;
+        }
+        if (board == null) {
+            throw new IllegalStateException("Board is not initialized");
         }
 
         Cell[][] cells = board.getCells();
@@ -92,6 +104,9 @@ public class ShipPlacementService {
     }
 
     private boolean validateCountShip(TypeShip typeShip) {
+        if (typeShip == null) {
+            return false;
+        }
         int countShip = 0;
         for (Ship ship : ships) {
             if (typeShip == ship.getType()) {
@@ -104,12 +119,17 @@ public class ShipPlacementService {
     /**
      * Метод изменения ориентации(горизонт/вертикаль)
      *
-     * @param player
      * @param coordinate
      * @return
      */
-    public boolean changeOrientationShip(Player player, Coordinate coordinate) {
-        if (!validateCoordinate(coordinate.x(), coordinate.y())) {
+    public boolean changeOrientationShip(Coordinate coordinate) {
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Coordinate is null");
+        }
+        if (board == null) {
+            throw new IllegalStateException("Board is not initialized");
+        }
+        if (!validateCoordinate(coordinate)) {
             return false;
         }
         Ship ship = getShip(coordinate);
@@ -143,6 +163,9 @@ public class ShipPlacementService {
     }
 
     private void clearCells(Ship ship, Cell[][] cells) {
+        if (ship == null || cells == null) {
+            return;
+        }
         List<Coordinate> shipCoordinates = ship.getCoordinates();
         for (Coordinate coordinate : shipCoordinates) {
             cells[coordinate.x()][coordinate.y()] = Cell.EMPTY;
@@ -150,6 +173,9 @@ public class ShipPlacementService {
     }
 
     private Ship getShip(Coordinate coordinate) {
+        if (coordinate == null) {
+            return null;
+        }
         Ship ship;
         for (Ship sh : ships) {
             if (sh.getCoordinates().contains(coordinate)) {
@@ -167,6 +193,10 @@ public class ShipPlacementService {
      * @return
      */
     public Board generateRandomShips(Player player) {
+        if (player == null) {
+            throw new IllegalArgumentException("Player is null");
+        }
+
         board = new Board();
 
         Cell[][] cells = board.getCells();
@@ -193,11 +223,20 @@ public class ShipPlacementService {
 
 
     private boolean placeShip(Coordinate coordinate, Cell[][] cells, TypeShip type, int sizeShip, boolean horizontal) {
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Coordinate is null");
+        }
+        if (cells == null) {
+            throw new IllegalArgumentException("Cells array is null");
+        }
+        if (type == null) {
+            throw new IllegalArgumentException("TypeShip is null");
+        }
 
         int x = coordinate.x();
         int y = coordinate.y();
 
-        if (!canPlaceShip(cells, horizontal, x, y, sizeShip)) {
+        if (!canPlaceShip(cells, horizontal, coordinate, sizeShip)) {
             return false;
         }
 
@@ -218,11 +257,19 @@ public class ShipPlacementService {
         return true;
     }
 
-    private boolean canPlaceShip(Cell[][] cells, boolean horizontal, int x, int y, int sizeShip) {
+    private boolean canPlaceShip(Cell[][] cells, boolean horizontal, Coordinate coordinate, int sizeShip) {
+        if (coordinate == null) {
+            throw new IllegalArgumentException("Coordinate is null");
+        }
+        if (cells == null) {
+            throw new IllegalArgumentException("Cells array is null");
+        }
+        int x = coordinate.x();
+        int y = coordinate.y();
         for (int i = 0; i < sizeShip; i++) {
             int checkX = horizontal ? x + i : x;
             int checkY = horizontal ? y : y + i;
-            if (!coordinateIsEmpty(checkX, checkY, cells)) {
+            if (!coordinateIsEmpty(new Coordinate(checkX, checkY), cells)) {
                 return false;
             }
         }
@@ -230,6 +277,9 @@ public class ShipPlacementService {
     }
 
     private void deleteFromFreeCoordinates(Cell[][] cells) {
+        if (cells == null) {
+            return;
+        }
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE; y++) {
                 if (cells[x][y] == Cell.SHIP || cells[x][y] == Cell.HALO) {
@@ -246,6 +296,10 @@ public class ShipPlacementService {
      * @param cells
      */
     private void addFullHaloAroundShip(Ship ship, Cell[][] cells) {
+        if (ship == null || cells == null) {
+            return;
+        }
+
         int sizeShip = ship.getType().getSize();
         int x = ship.getX();
         int y = ship.getY();
@@ -257,7 +311,7 @@ public class ShipPlacementService {
 
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
-                    if (coordinateIsEmpty(currentX + dx, currentY + dy, cells)) {
+                    if (coordinateIsEmpty(new Coordinate(currentX + dx, currentY + dy), cells)) {
                         cells[currentX + dx][currentY + dy] = Cell.HALO;
                     }
                 }
@@ -271,13 +325,16 @@ public class ShipPlacementService {
      * @param cells
      */
     private void addFullHalo(Cell[][] cells) {
+        if (cells == null) {
+            return;
+        }
 
         for (int i = 0; i < cells.length; i++) {
             for (int j = 0; j < cells[i].length; j++) {
                 if (cells[i][j] == Cell.SHIP) {
                     for (int dx = -1; dx <= 1; dx++) {
                         for (int dy = -1; dy <= 1; dy++) {
-                            if (coordinateIsEmpty(i + dx, j + dy, cells)) {
+                            if (coordinateIsEmpty(new Coordinate(i + dx, j + dy), cells)) {
                                 cells[i + dx][j + dy] = Cell.HALO;
                             }
                         }
@@ -293,6 +350,9 @@ public class ShipPlacementService {
      * @param cells
      */
     public void clearHalo(Cell[][] cells) {
+        if (cells == null) {
+            return;
+        }
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE; y++) {
                 if (cells[x][y] == Cell.HALO) {
@@ -302,11 +362,19 @@ public class ShipPlacementService {
         }
     }
 
-    private boolean coordinateIsEmpty(int x, int y, Cell[][] cells) {
-        return validateCoordinate(x, y) && cells[x][y] == com.battlesea.enums.Cell.EMPTY;
+    private boolean coordinateIsEmpty(Coordinate coordinate, Cell[][] cells) {
+        if (coordinate == null || cells == null) {
+            return false;
+        }
+        return validateCoordinate(coordinate) && cells[coordinate.x()][coordinate.y()] == com.battlesea.enums.Cell.EMPTY;
     }
 
-    private boolean validateCoordinate(int x, int y) {
+    private boolean validateCoordinate(Coordinate coordinate) {
+        if (coordinate == null) {
+            return false;
+        }
+        int x = coordinate.x();
+        int y = coordinate.y();
         return x >= 0 && x < SIZE && y >= 0 && y < SIZE;
     }
 
@@ -315,6 +383,9 @@ public class ShipPlacementService {
     }
 
     public void setBoard(Board board) {
+        if (board == null) {
+            throw new IllegalArgumentException("Board is null");
+        }
         this.board = board;
     }
 

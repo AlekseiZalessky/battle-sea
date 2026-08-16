@@ -310,7 +310,7 @@ public class PlacementScreen implements Screen {
                         int cellY = (int) ((backupY - position.y) / 32);
 
                         log.debug("coords from backup: {}, {}", cellX, cellY);
-                        client.sendChangeOrientation(cellX, cellY);
+                        client.sendChangeOrientation(new Coordinate(cellX, cellY));
                         try {
                             Thread.sleep(200);
                         } catch (InterruptedException e) {

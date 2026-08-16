@@ -240,7 +240,7 @@ public class AIService {
 //        log.debug("Size coorForMoveAI before updating: {}", coorForMoveAI.size());
         for (int i = 0; i < SIZE_BOARD; i++) {
             for (int j = 0; j < SIZE_BOARD; j++) {
-                if(cells[i][j] == Cell.HALO || cells[i][j] == Cell.MISS || cells[i][j] == Cell.HIT) {
+                if (cells[i][j] == Cell.HALO || cells[i][j] == Cell.MISS || cells[i][j] == Cell.HIT) {
                     coorForMoveAI.remove(new Coordinate(i, j));
                 }
             }

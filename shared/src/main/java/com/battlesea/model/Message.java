@@ -6,10 +6,7 @@ import com.battlesea.enums.TypeShip;
 public class Message {
     private String type;
     private String username;
-    private int x;
-    private int y;
     private Board boardCreator;
-    private Board boardOpponent;
     private Game game;
     private Cell resultShoot;
     private Player currentPlayer;
@@ -40,22 +37,6 @@ public class Message {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 
     public Board getBoardCreator() {
@@ -156,15 +137,18 @@ public class Message {
         return "Message{" +
             "type='" + type + '\'' +
             ", username='" + username + '\'' +
-            ", x=" + x +
-            ", y=" + y +
-            ", boardPlayer1=" + boardCreator +
-            ", boardPlayer2=" + boardOpponent +
+            ", boardCreator=" + boardCreator +
             ", game=" + game +
             ", resultShoot=" + resultShoot +
-            ", turnPlayer=" + currentPlayer +
+            ", currentPlayer=" + currentPlayer +
             ", creator=" + creator +
             ", opponent=" + opponent +
+            ", timeStartTurn=" + timeStartTurn +
+            ", horizontalShip=" + horizontalShip +
+            ", typeShip=" + typeShip +
+            ", allShipPlaced=" + allShipPlaced +
+            ", coordinate=" + coordinate +
+            ", oldCoordinate=" + oldCoordinate +
             '}';
     }
 }

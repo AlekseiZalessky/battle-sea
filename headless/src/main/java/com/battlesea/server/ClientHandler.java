@@ -118,9 +118,9 @@ public class ClientHandler {
                     Message response = new Message();
                     boolean result;
                     if (oldCoordinate == null) {
-                        result = service.placeShipManually(player, coordinate, horizontalShip, typeShip);
+                        result = service.placeShipManually(coordinate, horizontalShip, typeShip);
                     } else {
-                        result = service.relocateShip(player, coordinate, oldCoordinate);
+                        result = service.relocateShip(coordinate, oldCoordinate);
                     }
                     if (result) {
                         playerBoard = service.getBoard();
@@ -139,8 +139,8 @@ public class ClientHandler {
 
                 if (Commands.CHANGE_ORIENTATION.equals(input.getType())) {
                     log.debug(Commands.CHANGE_ORIENTATION);
-                    Coordinate coordinate =  new Coordinate(input.getX(), input.getY());
-                    boolean result = service.changeOrientationShip(player, coordinate);
+                    Coordinate coordinate = input.getCoordinate();
+                    boolean result = service.changeOrientationShip(coordinate);
                     Message response = new Message();
                     if (result) {
                         response.setType(Commands.CHANGE_ORIENTATION_SUCCESS);
@@ -217,18 +217,16 @@ public class ClientHandler {
                     }
                     log.debug(Commands.SHOOT);
                     Message response = new Message();
-                    int x = input.getX();
-                    int y = input.getY();
+                    Coordinate target = input.getCoordinate();
                     battleService = gameSession.getBattleService();
-                    Cell resultShoot = battleService.shoot(new Coordinate(x, y));
+                    Cell resultShoot = battleService.shoot(target);
                     if (resultShoot == null) {
                         continue;
                     }
 
                     response.setType(Commands.RESULT_SHOOT);
                     response.setGame(game);
-                    response.setX(x);
-                    response.setY(y);
+                    response.setCoordinate(target);
                     response.setResultShoot(resultShoot);
                     response.setTimeStartTurn(System.currentTimeMillis());
                     broadcastToGamePlayers(gameServer, response);

@@ -17,6 +17,7 @@ import com.battlesea.button.ButtonFactory;
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.GameMode;
 import com.battlesea.model.Board;
+import com.battlesea.model.Coordinate;
 
 
 public class BattleScreen implements Screen {
@@ -134,7 +135,7 @@ public class BattleScreen implements Screen {
                     int cellX = (int) ((x - position.x) / 32);
                     int cellY = (int) ((y - position.y) / 32);
 
-                    client.sendAttack(cellX, cellY);
+                    client.sendAttack(new Coordinate(cellX, cellY));
                 }
             }
         }
