@@ -19,7 +19,7 @@ public class ButtonFactory {
         TextButton button = new TextButton("Menu", ButtonStyles.createDefaultStyle(font));
         button.setSize(100, 60);
         button.setPosition(
-            (Gdx.graphics.getWidth() - 400),
+            (Gdx.graphics.getWidth() - 120),
             (Gdx.graphics.getHeight() - 60)
         );
         return button;
@@ -30,7 +30,7 @@ public class ButtonFactory {
         TextButton button = new TextButton("Abort", ButtonStyles.createDefaultStyle(font));
         button.setSize(100, 60);
         button.setPosition(
-            (Gdx.graphics.getWidth() - 400),
+            (Gdx.graphics.getWidth() - 120),
             (Gdx.graphics.getHeight() - 60)
         );
         button.addListener(new ClickListener() {
@@ -78,7 +78,7 @@ public class ButtonFactory {
         TextButton button = new TextButton("PvE", ButtonStyles.createDefaultStyle(font));
         button.setSize(100, 60);
         button.setPosition(
-            (Gdx.graphics.getWidth() - 400) / 4,
+            (Gdx.graphics.getWidth()) / 4,
             (Gdx.graphics.getHeight() - 60) / 2
         );
         button.addListener(new ClickListener() {
@@ -96,7 +96,7 @@ public class ButtonFactory {
         TextButton button = new TextButton("Online", ButtonStyles.createDefaultStyle(font));
         button.setSize(100, 60);
         button.setPosition(
-            (Gdx.graphics.getWidth() - 400) / 2,
+            (Gdx.graphics.getWidth()) / 2,
             (Gdx.graphics.getHeight() - 60) / 2
         );
         button.addListener(new ClickListener() {
@@ -104,6 +104,22 @@ public class ButtonFactory {
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("click Online");
                 game.setScreen(new PlacementScreen(client, game, GameMode.PVP_ONLINE));
+            }
+        });
+        return button;
+    }
+
+    public static TextButton createExitButton(Main game, BitmapFont font) {
+        TextButton button = new TextButton("Exit", ButtonStyles.createDefaultStyle(font));
+        button.setSize(100, 60);
+        button.setPosition(
+            (Gdx.graphics.getWidth() - 120),
+            (Gdx.graphics.getHeight() - 60)
+        );
+        button.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                ((Main) game).gracefulExit();
             }
         });
         return button;

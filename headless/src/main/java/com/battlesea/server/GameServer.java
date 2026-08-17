@@ -28,7 +28,7 @@ public class GameServer {
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            log.debug("Сервер запущен на порту " + port);
+            log.debug("Сервер запущен на порту {}", port);
 
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -46,6 +46,7 @@ public class GameServer {
     }
 
     public void registerPlayer(Player player, ClientHandler clientHandler) {
+        log.debug("Игрок {} зарегистрирован", player.getName());
         players.put(player, clientHandler);
     }
 
@@ -54,12 +55,14 @@ public class GameServer {
     }
 
     public void removePlayer(Player player) {
+        log.debug("Игрок {} удален", player.getName());
         players.remove(player);
     }
 
     public GameSession createSession(Game game) {
         GameSession session = new GameSession(game, clientHandler);
         sessions.put(game.getId(), session);
+        log.debug("Создана сессия для игры с id: {}", game.getId());
         return session;
     }
 
@@ -68,6 +71,7 @@ public class GameServer {
     }
 
     public void removeGameSession(UUID gameId) {
+        log.debug("Удалена сессия с id: {}", gameId);
         sessions.remove(gameId);
     }
 }

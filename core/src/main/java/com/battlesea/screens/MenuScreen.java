@@ -35,6 +35,10 @@ public class MenuScreen implements Screen {
         // Кнопка режим Online
         TextButton onlineButton = ButtonFactory.createOnlineButton(game, client, font);
         stage.addActor(onlineButton);
+
+        // Кнопка exit
+        TextButton exitButton = ButtonFactory.createExitButton(game, font);
+        stage.addActor(exitButton);
     }
 
     @Override

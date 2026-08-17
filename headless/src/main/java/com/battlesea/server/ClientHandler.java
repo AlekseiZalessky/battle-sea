@@ -50,7 +50,6 @@ public class ClientHandler {
         this.gameService = new GameService();
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.out = new PrintWriter(socket.getOutputStream(), true);
-        // ← НАСТРАИВАЕМ GSON ДЛЯ РАБОТЫ С LocalDateTime
         this.gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class,
                 (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) ->
@@ -66,13 +65,17 @@ public class ClientHandler {
         try {
             while (true) {
                 json = in.readLine();
+                if (json == null) {
+                    break;
+                }
+
                 Message input = gson.fromJson(json, Message.class);
                 log.debug("input: {}", input);
                 if (Commands.AUTH.equals(input.getType())) {
                     player = new Player();
                     String username = player.getName();
                     gameServer.registerPlayer(player, this);
-                    log.debug("avtorizovan igrok: {}", username);
+                    log.debug("Player authorized: {}", username);
                     Message response = new Message();
                     response.setType(Commands.AUTH_SUCCESS);
                     response.setCurrentPlayer(player);
@@ -83,11 +86,21 @@ public class ClientHandler {
 
             while (true) {
                 json = in.readLine();
+                if (json == null) {
+                    break;
+                }
+
                 Message input = gson.fromJson(json, Message.class);
 
                 if (Commands.UPDATE_FIELDS.equals(input.getType())) {
                     log.debug(Commands.UPDATE_FIELDS);
                     updateFields();
+                }
+
+                if (Commands.EXIT.equals(input.getType())) {
+                    log.debug(Commands.EXIT);
+                    gameServer.removePlayer(player);
+                    break;
                 }
 
                 if (Commands.AUTO_PLACE.equals(input.getType())) {
@@ -314,6 +327,8 @@ public class ClientHandler {
             }
         } catch (Exception e) {
             log.error("Error in ClientHandler: {}", e.getMessage(), e);
+        } finally {
+           disconnect();
         }
     }
 
@@ -468,5 +483,35 @@ public class ClientHandler {
 
     private void sendMessage(String json) {
         out.println(json);
+    }
+
+    public void disconnect() {
+
+        if (in != null) {
+            try {
+                in.close();
+                log.debug("BufferedReader закрыт для игрока {}", player.getName());
+            } catch (Exception e) {
+               log.error("Не удалось закрыть BufferedReader для игрока {}", player.getName(), e);
+            }
+        }
+
+        if (out != null) {
+            try {
+                out.close();
+                log.debug("PrintWriter закрыт для игрока {}", player.getName());
+            } catch (Exception e) {
+                log.error("Не удалось закрыть PrintWriter для игрока {}", player.getName(), e);
+            }
+        }
+
+        if (socket != null) {
+            try {
+                socket.close();
+                log.debug("Socket  закрыт для игрока {}", player.getName());
+            } catch (Exception e) {
+                log.error("Не удалось закрыть Socket для игрока {}", player.getName(), e);
+            }
+        }
     }
 }

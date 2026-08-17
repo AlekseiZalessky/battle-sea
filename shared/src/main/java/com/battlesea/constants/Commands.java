@@ -3,6 +3,7 @@ package com.battlesea.constants;
 public class Commands {
     public static final String AUTH = "AUTH";
     public static final String AUTH_SUCCESS = "AUTH_SUCCESS";
+    public static final String EXIT = "EXIT";
 
     public static final String AUTO_PLACE = "AUTO_PLACE";
     public static final String AUTO_PLACE_SUCCESS = "AUTO_PLACE_SUCCESS";

@@ -30,7 +30,6 @@ public class Client {
     private boolean gameOver;
     private Player currnetPlayer;
     private Player creator;
-//    private Player opponent;
     private boolean isStartingGame;
     private boolean timeOut;
     private static final Logger log = LoggerFactory.getLogger(Client.class);
@@ -46,7 +45,6 @@ public class Client {
         game = null;
         gameOver = false;
         creator = null;
-//        opponent = null;
         isStartingGame = false;
         timeOut = false;
         allShipPlaced = false;
@@ -67,7 +65,7 @@ public class Client {
                     LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
             .create();
 
-        new Thread(() -> {
+        Thread networkThread = new Thread(() -> {
             try {
                 while (true) {
                     Message message = new Message();
@@ -206,12 +204,14 @@ public class Client {
             } catch (Exception e) {
                 log.error("Error in Client: {}", e.getMessage(), e);
             }
-        }).start();
+        });
+
+        networkThread.setDaemon(true);
+        networkThread.start();
     }
 
     private void update() {
         creator = game.getCreator();
-//        opponent = game.getOpponent();
         boardCreator = game.getBoardCreator();
         boardOpponent = game.getBoardOpponent();
     }
@@ -240,10 +240,6 @@ public class Client {
         return creator;
     }
 
-//    public Player getOpponentPlayer() {
-//        return opponent;
-//    }
-
     public Player getCurrentPlayer() {
         return currnetPlayer;
     }
@@ -255,10 +251,6 @@ public class Client {
     public Player winner() {
         return game.getWinner();
     }
-
-//    public Game getGame() {
-//        return game;
-//    }
 
     public long getTurnTime() {
         return TURN_TIME + (timeStartTimer - System.currentTimeMillis());
@@ -328,6 +320,25 @@ public class Client {
             clip.start();
         } catch (Exception e) {
             log.error("Error in Client.playShootSound(): {}", e.getMessage(), e);
+        }
+    }
+
+    public void disconnect() {
+        log.info("Клиент инициирует отключение от сервера...");
+        try {
+            Message abortMessage = new Message();
+            abortMessage.setType(Commands.EXIT);
+            abortMessage.setCurrentPlayer(currnetPlayer);
+
+            if (out != null) {
+                out.println(gson.toJson(abortMessage));
+            }
+
+            if (socket != null && !socket.isClosed()) {
+                socket.shutdownOutput();
+            }
+        } catch (Exception e) {
+            log.error("Ошибка при отправке пакета отключения: {}", e.getMessage(), e);
         }
     }
 }
