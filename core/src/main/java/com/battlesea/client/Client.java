@@ -56,39 +56,11 @@ public class Client {
         this.socket = new Socket(host, port);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.out = new PrintWriter(socket.getOutputStream(), true);
-        this.gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class,
-                (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) ->
-                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
-            .registerTypeAdapter(LocalDateTime.class,
-                (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) ->
-                    LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-            .create();
+        this.gson = initGson();
 
         Thread networkThread = new Thread(() -> {
             try {
-                while (true) {
-                    Message message = new Message();
-                    message.setType(Commands.AUTH);
-                    Random rand = new Random();
-                    message.setUsername("player" + rand.nextInt(10000));
-
-                    out.println(gson.toJson(message));
-
-                    String json = in.readLine();
-                    if (json == null) {
-                        break;
-                    }
-
-                    message = gson.fromJson(json, Message.class);
-
-                    if (Commands.AUTH_SUCCESS.equals(message.getType())) {
-                        currnetPlayer = message.getCurrentPlayer();
-                        log.info(Commands.AUTH_SUCCESS);
-                        log.info("Current Player : {}", currnetPlayer.getName());
-                        break;
-                    }
-                }
+                authentication();
 
                 while (true) {
                     String json = in.readLine();
@@ -208,6 +180,42 @@ public class Client {
 
         networkThread.setDaemon(true);
         networkThread.start();
+    }
+
+    private void authentication() throws IOException {
+        while (true) {
+            Message message = new Message();
+            message.setType(Commands.AUTH);
+            Random rand = new Random();
+            message.setUsername("player" + rand.nextInt(10000));
+
+            out.println(gson.toJson(message));
+
+            String json = in.readLine();
+            if (json == null) {
+                break;
+            }
+
+            message = gson.fromJson(json, Message.class);
+
+            if (Commands.AUTH_SUCCESS.equals(message.getType())) {
+                currnetPlayer = message.getCurrentPlayer();
+                log.info(Commands.AUTH_SUCCESS);
+                log.info("Current Player : {}", currnetPlayer.getName());
+                break;
+            }
+        }
+    }
+
+    private static Gson initGson() {
+        return new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class,
+                (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) ->
+                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+            .registerTypeAdapter(LocalDateTime.class,
+                (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) ->
+                    LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            .create();
     }
 
     private void update() {

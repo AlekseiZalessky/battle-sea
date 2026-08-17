@@ -53,39 +53,13 @@ public class ClientHandler {
         this.gameService = new GameService();
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.out = new PrintWriter(socket.getOutputStream(), true);
-        this.gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class,
-                (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) ->
-                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
-            .registerTypeAdapter(LocalDateTime.class,
-                (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) ->
-                    LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-            .create();
+        this.gson = initGson();
 
         log.debug("Player connected to server");
         String json;
 
         try {
-            while (true) {
-                json = in.readLine();
-                if (json == null) {
-                    break;
-                }
-
-                Message input = gson.fromJson(json, Message.class);
-                log.debug("input: {}", input);
-                if (Commands.AUTH.equals(input.getType())) {
-                    player = new Player();
-                    String username = player.getName();
-                    gameServer.registerPlayer(player, this);
-                    log.debug("Player authorized: {}", username);
-                    Message response = new Message();
-                    response.setType(Commands.AUTH_SUCCESS);
-                    response.setCurrentPlayer(player);
-                    sendMessage(response);
-                    break;
-                }
-            }
+            authentication();
 
             while (true) {
                 json = in.readLine();
@@ -108,118 +82,32 @@ public class ClientHandler {
 
                 if (Commands.AUTO_PLACE.equals(input.getType())) {
                     log.debug(Commands.AUTO_PLACE);
-                    service = new ShipPlacementService();
-                    if (playerBoard == null) {
-                        playerBoard = new Board();
-                    } else {
-                        playerBoard.init();
-                        playerBoard.getShips().clear();
-                    }
-
-                    playerBoard = service.generateRandomShips(player, playerBoard);
-
-                    Message response = new Message();
-                    response.setType(Commands.AUTO_PLACE_SUCCESS);
-                    response.setBoardCreator(playerBoard);
-                    sendMessage(response);
+                    autoPlace();
                 }
 
                 if (Commands.PLACE_SHIP.equals(input.getType())) {
                     log.debug(Commands.PLACE_SHIP);
-                    if (playerBoard == null) {
-                        playerBoard = new Board();
-                        playerBoard.setPlayer(player);
-                    }
-                    if (service == null) {
-                        service = new ShipPlacementService();
-                    }
-                    Coordinate coordinate = input.getCoordinate();
-                    Coordinate oldCoordinate = input.getOldCoordinate();
-                    boolean horizontalShip = input.isHorizontalShip();
-                    TypeShip typeShip = input.getTypeShip();
-                    Message response = new Message();
-                    boolean result;
-                    if (oldCoordinate == null) {
-                        result = service.placeShipManually(playerBoard, coordinate, horizontalShip, typeShip);
-                    } else {
-                        result = service.relocateShip(playerBoard, coordinate, oldCoordinate);
-                    }
-                    if (result) {
-                        response.setType(Commands.PLACE_SHIP_SUCCESS);
-                        if (playerBoard.getShips().size() == 10) {
-                            response.setAllShipPlaced(true);
-                            service.clearHalo(playerBoard.getCells());
-                        }
-                    } else {
-                        response.setType(Commands.PLACE_SHIP_FAIL);
-                    }
-                    response.setBoardCreator(playerBoard);
-                    sendMessage(response);
+                    placeShip(input);
                 }
 
                 if (Commands.CHANGE_ORIENTATION.equals(input.getType())) {
                     log.debug(Commands.CHANGE_ORIENTATION);
-                    Coordinate coordinate = input.getCoordinate();
-                    boolean result = service.changeOrientationShip(playerBoard, coordinate);
-                    Message response = new Message();
-                    if (result) {
-                        response.setType(Commands.CHANGE_ORIENTATION_SUCCESS);
-                    } else {
-                        response.setType(Commands.CHANGE_ORIENTATION_FAIL);
-                    }
-                    response.setBoardCreator(playerBoard);
-                    sendMessage(response);
+                    changeOrientation(input);
                 }
 
                 if (Commands.START_GAME_PVE.equals(input.getType())) {
                     log.debug(Commands.START_GAME_PVE);
-                    game = gameService.startGame(player, playerBoard, GameMode.PVE);
-                    gameSession = gameServer.createSession(game);
-                    battleService = gameSession.getBattleService();
-                    if (game.getTurnPlayer().equals(game.getOpponent())) {
-                        turnAI = true;
-                    } else {
-                        lastActionTime = System.currentTimeMillis();
-                        timer();
-                    }
-                    Message response = new Message();
-                    response.setType(Commands.START_GAME_PVE_SUCCESS);
-                    response.setGame(game);
-                    response.setTimeStartTurn(System.currentTimeMillis());
-                    String responseJson = gson.toJson(response);
-                    out.println(responseJson);
+                    startGamePVE();
                 }
 
                 if (Commands.START_GAME_PVP_ONLINE.equals(input.getType())) {
                     log.debug(Commands.START_GAME_PVP_ONLINE);
-                    game = gameService.startGame(player, playerBoard, GameMode.PVP_ONLINE);
-                    if (player.equals(game.getCreator())) {
-                        gameSession = gameServer.createSession(game);
-                        waitingOpponent();
-                    } else {
-                        gameSession = gameServer.getSession(game.getId());
-                    }
-                    battleService = gameSession.getBattleService();
-                    battleService.setTurnPlayer(game.getTurnPlayer());
+                    startGamePVPOnline();
                 }
 
                 if (Commands.ABORTING.equals(input.getType())) {
                     log.debug(Commands.ABORTING);
-                    if (player.equals(game.getCreator())) {
-                        game.setWinner(game.getOpponent());
-                    } else {
-                        game.setWinner(game.getCreator());
-                    }
-                    game.setEndTime(LocalDateTime.now());
-                    game.setGameStatus(GameStatus.ABORTED);
-                    battleService.setGameOver(true);
-                    turnAI = false;
-                    Message response = new Message();
-                    response.setType(Commands.ABORTING_SUCCESS);
-                    response.setGame(game);
-                    broadcastToGamePlayers(gameServer, response);
-                    gameServer.removeGameSession(game.getId());
-                    cancelTimers();
+                    aborting();
                 }
 
                 if (Commands.ABORT_WAITING.equals(input.getType())) {
@@ -229,109 +117,25 @@ public class ClientHandler {
                 }
 
                 if (Commands.SHOOT.equals(input.getType())) {
-                    if (gameOver) {
-                        continue;
-                    }
-                    log.debug(Commands.SHOOT);
-                    Message response = new Message();
-                    Coordinate target = input.getCoordinate();
-                    battleService = gameSession.getBattleService();
-                    Cell resultShoot = battleService.shoot(target);
-                    if (resultShoot == null) {
-                        continue;
-                    }
-
-                    response.setType(Commands.RESULT_SHOOT);
-                    response.setGame(game);
-                    response.setCoordinate(target);
-                    response.setResultShoot(resultShoot);
-                    response.setTimeStartTurn(System.currentTimeMillis());
-                    broadcastToGamePlayers(gameServer, response);
-
-                    if (game.getGameMode() == GameMode.PVE && resultShoot == Cell.MISS) {
-                        turnAI = true;
-                    }
-
-                    isGameOver();
-                    if (!gameOver) {
-                        if (game.getGameMode() != GameMode.PVE) {
-                            if (resultShoot == Cell.HIT) {
-                                cancelTimer();
-                                lastActionTime = System.currentTimeMillis();
-                                timer();
-                            }
-                            if (resultShoot == Cell.MISS) {
-                                cancelTimer();
-                                ClientHandler nextPlayerHandler = gameServer.getClientHandler(game.getTurnPlayer());
-                                if (nextPlayerHandler != null) {
-                                    nextPlayerHandler.cancelTimer();
-                                    nextPlayerHandler.lastActionTime = System.currentTimeMillis();
-                                    nextPlayerHandler.timer();
-                                }
-                            }
-                        } else {
-                            cancelTimer();
-                            lastActionTime = System.currentTimeMillis();
-                            timer();
-                        }
-                    }
+                    shoot(input);
                 }
 
                 if (turnAI && !gameOver) {
-
                     cancelTimer();
                     if (battleService.getCounter() == 0) {
 //                        Thread.sleep(3000);
                     }
 
                     while (turnAI) {
-                        aiService = gameSession.getAiService();
-
-                        if (coorForMoveAI == null) {
-                            coorForMoveAI = aiService.initListCoorForMoveAI(game.getBoardOpponent().getCells());
-                        }
-                        if (aiState == null) {
-                            aiState = new AIState();
-                        }
-                        Coordinate coordinate = aiService.chooseCoordinate(playerBoard, coorForMoveAI, aiState);
-                        Cell resultShoot = battleService.shoot(coordinate);
-
-                        if (resultShoot == Cell.HIT && !aiService.isSunk(coordinate, playerBoard, aiState)) {
-                            if (aiState.isHasHit()) {
-                                aiService.setOrientation(coordinate, playerBoard, aiState);
-                            }
-
-                            if (!aiState.isHasHit()) {
-                                aiState.setCoordinateHit(coordinate);
-                            }
-                            aiState.setHasHit(true);
-                        }
-                        aiService.removeCoordinate(coordinate, coorForMoveAI);
-                        aiService.updateFreeCoordinates(coorForMoveAI, playerBoard.getCells());
-                        Message response = new Message();
-                        response.setType(Commands.RESULT_SHOOT);
-                        response.setGame(game);
-                        response.setResultShoot(resultShoot);
-                        response.setTimeStartTurn(System.currentTimeMillis());
-                        broadcastToGamePlayers(gameServer, response);
-
-                        if (resultShoot == Cell.MISS) {
-                            lastActionTime = System.currentTimeMillis();
-                            turnAI = false;
-                            timer();
-                            continue;
-                        }
-
-                        isGameOver();
+                       moveAI();
                     }
+                }
 
-                    if (Commands.SWITCH_TURN.equals(input.getType())) {
-                        log.debug(Commands.SWITCH_TURN);
-                        if (game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())) {
-                            turnAI = true;
-                        }
+                if (Commands.SWITCH_TURN.equals(input.getType())) {
+                    log.debug(Commands.SWITCH_TURN);
+                    if (game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())) {
+                        turnAI = true;
                     }
-
                 }
             }
         } catch (Exception e) {
@@ -339,6 +143,241 @@ public class ClientHandler {
         } finally {
             disconnect();
         }
+    }
+
+    private void shoot(Message input) {
+        if (gameOver) {
+            return;
+        }
+        log.debug(Commands.SHOOT);
+        Message response = new Message();
+        Coordinate target = input.getCoordinate();
+        battleService = gameSession.getBattleService();
+        Cell resultShoot = battleService.shoot(target);
+        if (resultShoot == null) {
+            return;
+        }
+
+        response.setType(Commands.RESULT_SHOOT);
+        response.setGame(game);
+        response.setCoordinate(target);
+        response.setResultShoot(resultShoot);
+        response.setTimeStartTurn(System.currentTimeMillis());
+        broadcastToGamePlayers(gameServer, response);
+
+        if (game.getGameMode() == GameMode.PVE && resultShoot == Cell.MISS) {
+            turnAI = true;
+        }
+
+        isGameOver();
+        if (!gameOver) {
+            if (game.getGameMode() != GameMode.PVE) {
+                if (resultShoot == Cell.HIT) {
+                    cancelTimer();
+                    lastActionTime = System.currentTimeMillis();
+                    timer();
+                }
+                if (resultShoot == Cell.MISS) {
+                    cancelTimer();
+                    ClientHandler nextPlayerHandler = gameServer.getClientHandler(game.getTurnPlayer());
+                    if (nextPlayerHandler != null) {
+                        nextPlayerHandler.cancelTimer();
+                        nextPlayerHandler.lastActionTime = System.currentTimeMillis();
+                        nextPlayerHandler.timer();
+                    }
+                }
+            } else {
+                cancelTimer();
+                lastActionTime = System.currentTimeMillis();
+                timer();
+            }
+        }
+    }
+
+    private void aborting() {
+        if (player.equals(game.getCreator())) {
+            game.setWinner(game.getOpponent());
+        } else {
+            game.setWinner(game.getCreator());
+        }
+        game.setEndTime(LocalDateTime.now());
+        game.setGameStatus(GameStatus.ABORTED);
+        battleService.setGameOver(true);
+        turnAI = false;
+        Message response = new Message();
+        response.setType(Commands.ABORTING_SUCCESS);
+        response.setGame(game);
+        broadcastToGamePlayers(gameServer, response);
+        gameServer.removeGameSession(game.getId());
+        cancelTimers();
+    }
+
+    private void startGamePVPOnline() {
+        game = gameService.startGame(player, playerBoard, GameMode.PVP_ONLINE);
+        if (player.equals(game.getCreator())) {
+            gameSession = gameServer.createSession(game);
+            waitingOpponent();
+        } else {
+            gameSession = gameServer.getSession(game.getId());
+        }
+        battleService = gameSession.getBattleService();
+        battleService.setTurnPlayer(game.getTurnPlayer());
+    }
+
+    private void startGamePVE() {
+        game = gameService.startGame(player, playerBoard, GameMode.PVE);
+        gameSession = gameServer.createSession(game);
+        battleService = gameSession.getBattleService();
+        if (game.getTurnPlayer().equals(game.getOpponent())) {
+            turnAI = true;
+        } else {
+            lastActionTime = System.currentTimeMillis();
+            timer();
+        }
+        Message response = new Message();
+        response.setType(Commands.START_GAME_PVE_SUCCESS);
+        response.setGame(game);
+        response.setTimeStartTurn(System.currentTimeMillis());
+        String responseJson = gson.toJson(response);
+        out.println(responseJson);
+    }
+
+    private void changeOrientation(Message input) {
+        Coordinate coordinate = input.getCoordinate();
+        boolean result = service.changeOrientationShip(playerBoard, coordinate);
+        Message response = new Message();
+        if (result) {
+            response.setType(Commands.CHANGE_ORIENTATION_SUCCESS);
+        } else {
+            response.setType(Commands.CHANGE_ORIENTATION_FAIL);
+        }
+        response.setBoardCreator(playerBoard);
+        sendMessage(response);
+    }
+
+    private void placeShip(Message input) {
+        if (playerBoard == null) {
+            playerBoard = new Board();
+            playerBoard.setPlayer(player);
+        }
+        if (service == null) {
+            service = new ShipPlacementService();
+        }
+        Coordinate coordinate = input.getCoordinate();
+        Coordinate oldCoordinate = input.getOldCoordinate();
+        boolean horizontalShip = input.isHorizontalShip();
+        TypeShip typeShip = input.getTypeShip();
+        Message response = new Message();
+        boolean result;
+        if (oldCoordinate == null) {
+            result = service.placeShipManually(playerBoard, coordinate, horizontalShip, typeShip);
+        } else {
+            result = service.relocateShip(playerBoard, coordinate, oldCoordinate);
+        }
+        if (result) {
+            response.setType(Commands.PLACE_SHIP_SUCCESS);
+            if (playerBoard.getShips().size() == 10) {
+                response.setAllShipPlaced(true);
+                service.clearHalo(playerBoard.getCells());
+            }
+        } else {
+            response.setType(Commands.PLACE_SHIP_FAIL);
+        }
+        response.setBoardCreator(playerBoard);
+        sendMessage(response);
+    }
+
+    private void autoPlace() {
+        service = new ShipPlacementService();
+        if (playerBoard == null) {
+            playerBoard = new Board();
+        } else {
+            playerBoard.init();
+            playerBoard.getShips().clear();
+        }
+
+        playerBoard = service.generateRandomShips(player, playerBoard);
+
+        Message response = new Message();
+        response.setType(Commands.AUTO_PLACE_SUCCESS);
+        response.setBoardCreator(playerBoard);
+        sendMessage(response);
+    }
+
+    private void authentication() throws IOException {
+        String json;
+        while (true) {
+            json = in.readLine();
+            if (json == null) {
+                break;
+            }
+
+            Message input = gson.fromJson(json, Message.class);
+            log.debug("input: {}", input);
+            if (Commands.AUTH.equals(input.getType())) {
+                player = new Player();
+                String username = player.getName();
+                gameServer.registerPlayer(player, this);
+                log.debug("Player authorized: {}", username);
+                Message response = new Message();
+                response.setType(Commands.AUTH_SUCCESS);
+                response.setCurrentPlayer(player);
+                sendMessage(response);
+                break;
+            }
+        }
+    }
+
+    private static Gson initGson() {
+        return new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class,
+                (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context) ->
+                    src == null ? null : new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+            .registerTypeAdapter(LocalDateTime.class,
+                (JsonDeserializer<LocalDateTime>) (json, typeOfT, context) ->
+                    LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            .create();
+    }
+
+    private void moveAI() {
+        aiService = gameSession.getAiService();
+
+        if (coorForMoveAI == null) {
+            coorForMoveAI = aiService.initListCoorForMoveAI(game.getBoardOpponent().getCells());
+        }
+        if (aiState == null) {
+            aiState = new AIState();
+        }
+        Coordinate coordinate = aiService.chooseCoordinate(playerBoard, coorForMoveAI, aiState);
+        Cell resultShoot = battleService.shoot(coordinate);
+
+        if (resultShoot == Cell.HIT && !aiService.isSunk(coordinate, playerBoard, aiState)) {
+            if (aiState.isHasHit()) {
+                aiService.setOrientation(coordinate, playerBoard, aiState);
+            }
+
+            if (!aiState.isHasHit()) {
+                aiState.setCoordinateHit(coordinate);
+            }
+            aiState.setHasHit(true);
+        }
+        aiService.removeCoordinate(coordinate, coorForMoveAI);
+        aiService.updateFreeCoordinates(coorForMoveAI, playerBoard.getCells());
+
+        Message response = new Message();
+        response.setType(Commands.RESULT_SHOOT);
+        response.setGame(game);
+        response.setResultShoot(resultShoot);
+        response.setTimeStartTurn(System.currentTimeMillis());
+        broadcastToGamePlayers(gameServer, response);
+
+        if (resultShoot == Cell.MISS) {
+            lastActionTime = System.currentTimeMillis();
+            turnAI = false;
+            timer();
+        }
+
+        isGameOver();
     }
 
     private void waitingOpponent() {
