@@ -13,21 +13,24 @@ import java.util.List;
 public class BattleService {
     private static final Logger log = LoggerFactory.getLogger(BattleService.class);
 
-
     public BattleService() {
     }
 
     public Cell shoot(Game game, Coordinate coordinate, Board targetBoard, BattleState battleState) {
         if (game == null) {
+            log.error("Game is null");
             throw new IllegalArgumentException("Game is null");
         }
         if (targetBoard == null) {
+            log.error("TargetBoard is null ");
             throw new IllegalArgumentException("Target board is null");
         }
         if (coordinate == null) {
+            log.error("Coordinate is null ");
             throw new IllegalArgumentException("Coordinate is null");
         }
         if (!validateCoordinate(coordinate)) {
+            log.error("Coordinate is not valid");
             throw new IllegalArgumentException("Coordinates are invalid");
         }
 
@@ -37,12 +40,14 @@ public class BattleService {
         Player turnPlayer = game.getTurnPlayer();
 
         if (turnPlayer == null) {
+            log.error("turnPlayer is null");
             throw new NullPointerException("Turn player is null");
         }
 
         Cell[][] cells = targetBoard.getCells();
 
         if (cells == null) {
+            log.error("cells is null");
             throw new IllegalStateException("Cells array is null");
         }
 
@@ -103,6 +108,7 @@ public class BattleService {
                 return false;
             }
         }
+        log.info("GAME OVER! All ships sunk");
         return true;
     }
 
@@ -161,9 +167,11 @@ public class BattleService {
 
     public void endGame(Game game) {
         if (game == null) {
+            log.error("Game is null");
             throw new IllegalArgumentException("Game is null");
         }
         if (game.getTurnPlayer() == null) {
+            log.error("Turn player is null");
             throw new IllegalArgumentException("Turn player is null");
         }
 
@@ -174,21 +182,16 @@ public class BattleService {
 
     public void switchTurnPlayer(Game game) {
         if (game == null) {
+            log.error("Game is null");
             throw new IllegalArgumentException("Game is null");
         }
         Player turnPlayer = game.getTurnPlayer();
-        log.debug("=== SWITCH TURN ===");
-        log.debug("Current turnPlayer before switch: {}", turnPlayer);
         if (turnPlayer.equals(game.getCreator())) {
             turnPlayer = game.getOpponent();
-            log.debug("Switched: CREATOR -> OPPONENT");
         } else {
             turnPlayer = game.getCreator();
-            log.debug("Switched: OPPONENT -> CREATOR");
         }
         game.setTurnPlayer(turnPlayer);
-        log.debug("New turnPlayer: {}", turnPlayer);
-        log.debug("=== SWITCH TURN END ===");
-        System.out.println();
+        log.info("Turn switched to: {}", turnPlayer.getName());
     }
 }

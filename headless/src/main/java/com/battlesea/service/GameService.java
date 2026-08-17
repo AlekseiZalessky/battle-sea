@@ -23,6 +23,18 @@ public class GameService {
     }
 
     public Game startGame(Player player, Board board, GameMode gameMode) {
+        if (player == null) {
+            log.error("Player is null");
+            throw new IllegalArgumentException("Player is null");
+        }
+        if (board == null) {
+            log.error("Board is null");
+            throw new IllegalArgumentException("Board is null");
+        }
+        if (gameMode == null) {
+            log.error("GameMode is null");
+            throw new IllegalArgumentException("GameMode is null");
+        }
         Game game = null;
         Player opponent = null;
         Board opponentPlayerBoard = null;
@@ -67,16 +79,14 @@ public class GameService {
     }
 
     public void deleteGameFromCreatedGames(Game game) {
-        if(game == null) {
+        if (game == null) {
+            log.error("Game is null");
             throw new IllegalArgumentException("Game is null");
         }
         createdGames.remove(game);
     }
 
     private void randomTurnPlayer(Game game) {
-        if(game == null) {
-            throw new IllegalArgumentException("Game is null");
-        }
         Random random = new Random();
         boolean turnCreator = random.nextBoolean();
         if (turnCreator) {

@@ -39,7 +39,7 @@ public class Client {
     private boolean placeShipSuccess;
     private boolean changeOrientationSuccess;
 
-    public void updateOnStartGame(){
+    public void updateOnStartGame() {
         boardCreator = null;
         boardOpponent = null;
         game = null;
@@ -64,9 +64,11 @@ public class Client {
 
                 while (true) {
                     String json = in.readLine();
-                    log.debug("Получено сообщение: {}", json);
+
                     if (json == null) {
                         continue;
+                    } else {
+                        log.debug("Получено сообщение: {}", json);
                     }
                     Message message = gson.fromJson(json, Message.class);
                     if (Commands.AUTO_PLACE_SUCCESS.equals(message.getType())) {
@@ -95,7 +97,7 @@ public class Client {
                     if (Commands.CHANGE_ORIENTATION_SUCCESS.equals(message.getType())) {
                         log.info(Commands.CHANGE_ORIENTATION_SUCCESS);
                         boardCreator = message.getBoardCreator();
-                        changeOrientationSuccess =  true;
+                        changeOrientationSuccess = true;
                         continue;
                     }
 
@@ -126,7 +128,7 @@ public class Client {
                     }
 
                     if (Commands.RESULT_SHOOT.equals(message.getType())) {
-                        if(game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())){
+                        if (game.getGameMode() == GameMode.PVE && game.getTurnPlayer().equals(game.getOpponent())) {
                             Thread.sleep(500);
                         }
                         timeStartTimer = message.getTimeStartTurn();
@@ -134,7 +136,13 @@ public class Client {
                         if (result == null) {
                             continue;
                         }
-//                        playShootSound();
+                        if (result.equals(Cell.HIT)) {
+                            playShootSound("/hit.wav");
+                        }
+                        if (result.equals(Cell.MISS)) {
+                            playShootSound("/miss.wav");
+                        }
+
                         game = message.getGame();
                         update();
                         continue;
@@ -145,8 +153,12 @@ public class Client {
                         log.info(Commands.GAME_OVER);
                         game = message.getGame();
                         update();
-                        log.debug("game: {}", game);
                         gameOver = true;
+                        if (currnetPlayer.equals(winner())) {
+                            playShootSound("/won.wav");
+                        } else {
+                            playShootSound("/lost.wav");
+                        }
                     }
 
                     if (Commands.ABORTING_SUCCESS.equals(message.getType())) {
@@ -154,9 +166,12 @@ public class Client {
                         log.info(Commands.ABORTING_SUCCESS);
                         game = message.getGame();
                         update();
-                        log.debug("game: {}", game);
-                        log.debug("game.getWinner(): {}", game.getWinner());
                         gameOver = true;
+                        if (currnetPlayer.equals(winner())) {
+                            playShootSound("/win.wav");
+                        } else {
+                            playShootSound("/lost.wav");
+                        }
                     }
 
                     if (Commands.TIMEOUT.equals(message.getType())) {
@@ -318,10 +333,10 @@ public class Client {
         this.placeShipSuccess = placeShipSuccess;
     }
 
-    public void playShootSound() {
+    public void playShootSound(String sound) {
         try {
             log.debug("playShootSound ");
-            URL soundUrl = getClass().getResource("/shoot.wav");
+            URL soundUrl = getClass().getResource(sound);
             AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundUrl);
             Clip clip = AudioSystem.getClip();
             clip.open(audioIn);

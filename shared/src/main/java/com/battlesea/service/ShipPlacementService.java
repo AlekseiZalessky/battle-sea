@@ -23,21 +23,23 @@ public class ShipPlacementService {
     /**
      * Метод ручной расстановки корабля
      *
+     * @param board
      * @param firstCoordinate
      * @param horizontalShip
      * @param typeShip
      * @return
      */
     public boolean placeShipManually(Board board, Coordinate firstCoordinate, boolean horizontalShip, TypeShip typeShip) {
-        log.debug("placeShip");
-        log.debug("firstCoordinate: {}", firstCoordinate);
         if (board == null) {
+            log.error("Board is null");
             throw new IllegalArgumentException("Board is null");
         }
         if (firstCoordinate == null) {
+            log.error("firstCoordinate is null");
             throw new IllegalArgumentException("First coordinate is null");
         }
         if (typeShip == null) {
+            log.error("typeShip is null");
             throw new IllegalArgumentException("TypeShip is null");
         }
         if (!validateCoordinate(firstCoordinate)) {
@@ -47,6 +49,7 @@ public class ShipPlacementService {
         List<Ship> ships = board.getShips();
 
         if (ships == null) {
+            log.error("ships is null");
             throw new IllegalStateException("Ships is not initialized");
         }
 
@@ -57,25 +60,27 @@ public class ShipPlacementService {
         int size = typeShip.getSize();
         Cell[][] cells = board.getCells();
         if (cells == null) {
+            log.error("cells is null");
             throw new IllegalStateException("Cells is not initialized");
         }
 
         boolean result = placeShip(ships, null, firstCoordinate, cells, typeShip, size, horizontalShip);
-        log.debug("placeShip(firstCoordinate, cells, typeShip, size, horizontalShip): {}", result);
 
         board.setShips(ships);
-        log.debug("count ship: {}", board.getShips().size());
         return result;
     }
 
     public boolean relocateShip(Board board, Coordinate newCoordinate, Coordinate oldCoordinate) {
         if (board == null) {
+            log.error("board is null");
             throw new IllegalArgumentException("Board is not initialized");
         }
         if (newCoordinate == null) {
+            log.error("newCoordinate is null");
             throw new IllegalArgumentException("New coordinate is null");
         }
         if (oldCoordinate == null) {
+            log.error("oldCoordinate is null");
             throw new IllegalArgumentException("Old coordinate is null");
         }
         if (!validateCoordinate(oldCoordinate) || !validateCoordinate(newCoordinate)) {
@@ -84,16 +89,19 @@ public class ShipPlacementService {
 
         Cell[][] cells = board.getCells();
         if (cells == null) {
+            log.error("cells is null");
             throw new IllegalStateException("Cells is not initialized");
         }
 
         List<Ship> ships = board.getShips();
         if (ships == null) {
+            log.error("ships is null");
             throw new IllegalStateException("Ships is not initialized");
         }
 
         Ship ship = getShip(ships, oldCoordinate);
         if (ship == null) {
+            log.error("ship is null");
             throw new IllegalArgumentException("Ship not found");
         }
 
@@ -132,9 +140,11 @@ public class ShipPlacementService {
      */
     public boolean changeOrientationShip(Board board, Coordinate coordinate) {
         if (coordinate == null) {
+            log.error("coordinate is null");
             throw new IllegalArgumentException("Coordinate is null");
         }
         if (board == null) {
+            log.error("board is null");
             throw new IllegalArgumentException("Board is not initialized");
         }
         if (!validateCoordinate(coordinate)) {
@@ -206,11 +216,13 @@ public class ShipPlacementService {
      */
     public Board generateRandomShips(Player player, Board board) {
         if (player == null) {
+            log.error("player is null");
             throw new IllegalArgumentException("Player is null");
         }
 
         if (board == null) {
-           throw new IllegalArgumentException("Board is not initialized");
+            log.error("board is null");
+            throw new IllegalArgumentException("Board is not initialized");
         }
 
         Cell[][] cells = board.getCells();
@@ -352,7 +364,8 @@ public class ShipPlacementService {
      */
     public void clearHalo(Cell[][] cells) {
         if (cells == null) {
-            return;
+            log.error("Cells is null");
+            throw new IllegalArgumentException("Cells is null");
         }
         int size = Board.SIZE;
         for (int x = 0; x < size; x++) {

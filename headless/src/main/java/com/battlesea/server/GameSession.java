@@ -16,6 +16,14 @@ public class GameSession {
     private static final Logger log = LoggerFactory.getLogger(GameSession.class);
 
     public GameSession(Game game, ClientHandler creatorHandler) {
+        if (game == null) {
+            log.error("Game is null");
+            throw new IllegalArgumentException("Game is null");
+        }
+        if (creatorHandler == null) {
+            log.error("CreatorHandler is null");
+            throw new IllegalArgumentException("CreatorHandler is null");
+        }
         this.game = game;
         this.battleService = new BattleService();
         this.aiService = game.getGameMode() == GameMode.PVE ? new AIService() : null;

@@ -217,7 +217,7 @@ public class ClientHandler {
     private void startGamePVPOnline() {
         game = gameService.startGame(player, playerBoard, GameMode.PVP_ONLINE);
         if (player.equals(game.getCreator())) {
-            gameSession = gameServer.createSession(game);
+            gameSession = gameServer.createSession(game, this);
             waitingOpponent();
         } else {
             gameSession = gameServer.getSession(game.getId());
@@ -229,7 +229,7 @@ public class ClientHandler {
 
     private void startGamePVE() {
         game = gameService.startGame(player, playerBoard, GameMode.PVE);
-        gameSession = gameServer.createSession(game);
+        gameSession = gameServer.createSession(game, this);
         battleService = gameSession.getBattleService();
         battleState = new BattleState();
         if (game.getTurnPlayer().equals(game.getOpponent())) {
@@ -511,7 +511,6 @@ public class ClientHandler {
             cancelTimers();
             battleService.endGame(game);
             turnAI = false;
-            log.debug("game: {}", game);
             Message response = new Message();
             response.setType(Commands.GAME_OVER);
             response.setGame(game);

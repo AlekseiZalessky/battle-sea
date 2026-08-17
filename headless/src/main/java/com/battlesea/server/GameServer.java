@@ -18,7 +18,6 @@ public class GameServer {
     private final ExecutorService executor;
     private final Map<Player, ClientHandler> players = new ConcurrentHashMap<>();
     private final Map<UUID, GameSession> sessions = new ConcurrentHashMap<>();
-    private ClientHandler clientHandler;
     private static final Logger log = LoggerFactory.getLogger(GameServer.class);
 
     public GameServer(int port) {
@@ -32,11 +31,11 @@ public class GameServer {
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                executor.execute(() ->{
+                executor.execute(() -> {
                     try {
-                        clientHandler = new ClientHandler(socket, this);
+                        new ClientHandler(socket, this);
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        log.error("Error creating ClientHandler: {}", e.getMessage(), e);
                     }
                 });
             }
@@ -46,20 +45,44 @@ public class GameServer {
     }
 
     public void registerPlayer(Player player, ClientHandler clientHandler) {
+        if (player == null) {
+            log.error("Player is null");
+            throw new IllegalArgumentException("Player is null");
+        }
+        if (clientHandler == null) {
+            log.error("ClientHandler is null");
+            throw new IllegalArgumentException("ClientHandler is null");
+        }
         log.debug("Игрок {} зарегистрирован", player.getName());
         players.put(player, clientHandler);
     }
 
     public ClientHandler getClientHandler(Player player) {
+        if (player == null) {
+            log.error("Player is null");
+            throw new IllegalArgumentException("Player is null");
+        }
         return players.get(player);
     }
 
     public void removePlayer(Player player) {
+        if (player == null) {
+            log.error("Player is null");
+            throw new IllegalArgumentException("Player is null");
+        }
         log.debug("Игрок {} удален", player.getName());
         players.remove(player);
     }
 
-    public GameSession createSession(Game game) {
+    public GameSession createSession(Game game, ClientHandler clientHandler) {
+        if (game == null) {
+            log.error("Game is null");
+            throw new IllegalArgumentException("Game is null");
+        }
+        if (clientHandler == null) {
+            log.error("ClientHandler is null");
+            throw new IllegalArgumentException("ClientHandler is null");
+        }
         GameSession session = new GameSession(game, clientHandler);
         sessions.put(game.getId(), session);
         log.debug("Создана сессия для игры с id: {}", game.getId());
@@ -67,10 +90,18 @@ public class GameServer {
     }
 
     public GameSession getSession(UUID gameId) {
+        if (gameId == null) {
+            log.error("Game id is null");
+            throw new IllegalArgumentException("Game id is null");
+        }
         return sessions.get(gameId);
     }
 
     public void removeGameSession(UUID gameId) {
+        if (gameId == null) {
+            log.error("Game id is null");
+            throw new IllegalArgumentException("Game id is null");
+        }
         log.debug("Удалена сессия с id: {}", gameId);
         sessions.remove(gameId);
     }
