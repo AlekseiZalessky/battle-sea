@@ -30,7 +30,7 @@ public class GameService {
             shipPlacementService = new ShipPlacementService();
             opponent = new Player("Computer");
             game = new Game(player, board, opponent, gameMode);
-            opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent);
+            opponentPlayerBoard = shipPlacementService.generateRandomShips(opponent, new Board());
             game.setBoardOpponent(opponentPlayerBoard);
             randomTurnPlayer(game);
             game.setGameStatus(GameStatus.STARTED);

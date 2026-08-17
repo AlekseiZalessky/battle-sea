@@ -13,18 +13,11 @@ import org.slf4j.LoggerFactory;
 
 public class ShipPlacementService {
     private Random random = new Random();
-    private final int SIZE = Board.SIZE;
-    private List<Coordinate> freeCoordinates = new ArrayList<>();
-    private List<Ship> ships = new ArrayList<>();
-    private Board board;
+
     private static final Logger log = LoggerFactory.getLogger(ShipPlacementService.class);
 
-    {
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                freeCoordinates.add(new Coordinate(i, j));
-            }
-        }
+    public ShipPlacementService() {
+
     }
 
     /**
@@ -35,38 +28,50 @@ public class ShipPlacementService {
      * @param typeShip
      * @return
      */
-    public boolean placeShipManually(Coordinate firstCoordinate, boolean horizontalShip, TypeShip typeShip) {
+    public boolean placeShipManually(Board board, Coordinate firstCoordinate, boolean horizontalShip, TypeShip typeShip) {
         log.debug("placeShip");
         log.debug("firstCoordinate: {}", firstCoordinate);
+        if (board == null) {
+            throw new IllegalArgumentException("Board is null");
+        }
         if (firstCoordinate == null) {
             throw new IllegalArgumentException("First coordinate is null");
         }
         if (typeShip == null) {
             throw new IllegalArgumentException("TypeShip is null");
         }
-        if (board == null) {
-            throw new IllegalStateException("Board is not initialized");
-        }
         if (!validateCoordinate(firstCoordinate)) {
             return false;
         }
-        if (!validateCountShip(typeShip)) {
+
+        List<Ship> ships = board.getShips();
+
+        if (ships == null) {
+            throw new IllegalStateException("Ships is not initialized");
+        }
+
+        if (!validateCountShip(ships, typeShip)) {
             return false;
         }
 
         int size = typeShip.getSize();
         Cell[][] cells = board.getCells();
+        if (cells == null) {
+            throw new IllegalStateException("Cells is not initialized");
+        }
 
-        boolean result = placeShip(firstCoordinate, cells, typeShip, size, horizontalShip);
+        boolean result = placeShip(ships, null, firstCoordinate, cells, typeShip, size, horizontalShip);
         log.debug("placeShip(firstCoordinate, cells, typeShip, size, horizontalShip): {}", result);
 
-//        board.setPlayer(player);
         board.setShips(ships);
         log.debug("count ship: {}", board.getShips().size());
         return result;
     }
 
-    public boolean relocateShip(Coordinate newCoordinate, Coordinate oldCoordinate) {
+    public boolean relocateShip(Board board, Coordinate newCoordinate, Coordinate oldCoordinate) {
+        if (board == null) {
+            throw new IllegalArgumentException("Board is not initialized");
+        }
         if (newCoordinate == null) {
             throw new IllegalArgumentException("New coordinate is null");
         }
@@ -76,14 +81,20 @@ public class ShipPlacementService {
         if (!validateCoordinate(oldCoordinate) || !validateCoordinate(newCoordinate)) {
             return false;
         }
-        if (board == null) {
-            throw new IllegalStateException("Board is not initialized");
-        }
 
         Cell[][] cells = board.getCells();
-        Ship ship = getShip(oldCoordinate);
+        if (cells == null) {
+            throw new IllegalStateException("Cells is not initialized");
+        }
+
+        List<Ship> ships = board.getShips();
+        if (ships == null) {
+            throw new IllegalStateException("Ships is not initialized");
+        }
+
+        Ship ship = getShip(ships, oldCoordinate);
         if (ship == null) {
-            throw new NullPointerException("ship is null");
+            throw new IllegalArgumentException("Ship not found");
         }
 
         int size = ship.getType().getSize();
@@ -92,10 +103,10 @@ public class ShipPlacementService {
         clearHalo(cells);
         addFullHalo(cells);
 
-        boolean result = placeShip(newCoordinate, cells, ship.getType(), size, ship.isHorizontal());
+        boolean result = placeShip(ships, null, newCoordinate, cells, ship.getType(), size, ship.isHorizontal());
 
         if (!result) {
-            placeShip(oldCoordinate, cells, ship.getType(), size, ship.isHorizontal());
+            placeShip(ships, null, oldCoordinate, cells, ship.getType(), size, ship.isHorizontal());
         }
         board.setCells(cells);
         board.setShips(ships);
@@ -103,10 +114,7 @@ public class ShipPlacementService {
         return result;
     }
 
-    private boolean validateCountShip(TypeShip typeShip) {
-        if (typeShip == null) {
-            return false;
-        }
+    private boolean validateCountShip(List<Ship> ships, TypeShip typeShip) {
         int countShip = 0;
         for (Ship ship : ships) {
             if (typeShip == ship.getType()) {
@@ -122,17 +130,18 @@ public class ShipPlacementService {
      * @param coordinate
      * @return
      */
-    public boolean changeOrientationShip(Coordinate coordinate) {
+    public boolean changeOrientationShip(Board board, Coordinate coordinate) {
         if (coordinate == null) {
             throw new IllegalArgumentException("Coordinate is null");
         }
         if (board == null) {
-            throw new IllegalStateException("Board is not initialized");
+            throw new IllegalArgumentException("Board is not initialized");
         }
         if (!validateCoordinate(coordinate)) {
             return false;
         }
-        Ship ship = getShip(coordinate);
+        List<Ship> ships = board.getShips();
+        Ship ship = getShip(ships, coordinate);
         if (ship == null) {
             return false;
         }
@@ -148,15 +157,18 @@ public class ShipPlacementService {
         ships.remove(ship);
 
         Cell[][] cells = board.getCells();
+
         clearCells(ship, cells);
         clearHalo(cells);
         addFullHalo(cells);
 
-        boolean result = placeShip(new Coordinate(firstX, firstY), cells, typeShip, sizeShip, !horizontal);
+        List<Coordinate> freeCoordinates = initListFreeCoords(cells);
+
+        boolean result = placeShip(ships, freeCoordinates, new Coordinate(firstX, firstY), cells, typeShip, sizeShip, !horizontal);
 
         board.setCells(cells);
         if (!result) {
-            placeShip(new Coordinate(firstX, firstY), cells, typeShip, sizeShip, horizontal);
+            placeShip(ships, freeCoordinates, new Coordinate(firstX, firstY), cells, typeShip, sizeShip, horizontal);
         }
         board.setShips(ships);
         return result;
@@ -172,7 +184,7 @@ public class ShipPlacementService {
         }
     }
 
-    private Ship getShip(Coordinate coordinate) {
+    private Ship getShip(List<Ship> ships, Coordinate coordinate) {
         if (coordinate == null) {
             return null;
         }
@@ -192,15 +204,19 @@ public class ShipPlacementService {
      * @param player
      * @return
      */
-    public Board generateRandomShips(Player player) {
+    public Board generateRandomShips(Player player, Board board) {
         if (player == null) {
             throw new IllegalArgumentException("Player is null");
         }
 
-        board = new Board();
+        if (board == null) {
+           throw new IllegalArgumentException("Board is not initialized");
+        }
 
         Cell[][] cells = board.getCells();
 
+        List<Coordinate> freeCoordinates = initListFreeCoords(cells);
+        List<Ship> ships = new ArrayList<>();
         for (TypeShip type : TypeShip.values()) {
 
             int countShip = type.getCountShips();
@@ -208,7 +224,7 @@ public class ShipPlacementService {
 
             while (countShip > 0) {
                 Coordinate nextCoordinate = freeCoordinates.get(random.nextInt(freeCoordinates.size()));
-                if (placeShip(nextCoordinate, cells, type, sizeShip, random.nextBoolean())) {
+                if (placeShip(ships, freeCoordinates, nextCoordinate, cells, type, sizeShip, random.nextBoolean())) {
                     countShip--;
                 }
             }
@@ -217,22 +233,12 @@ public class ShipPlacementService {
         clearHalo(cells);
         board.setPlayer(player);
         board.setShips(ships);
-
+        board.setCells(cells);
         return board;
     }
 
 
-    private boolean placeShip(Coordinate coordinate, Cell[][] cells, TypeShip type, int sizeShip, boolean horizontal) {
-        if (coordinate == null) {
-            throw new IllegalArgumentException("Coordinate is null");
-        }
-        if (cells == null) {
-            throw new IllegalArgumentException("Cells array is null");
-        }
-        if (type == null) {
-            throw new IllegalArgumentException("TypeShip is null");
-        }
-
+    private boolean placeShip(List<Ship> ships, List<Coordinate> freeCoordinates, Coordinate coordinate, Cell[][] cells, TypeShip type, int sizeShip, boolean horizontal) {
         int x = coordinate.x();
         int y = coordinate.y();
 
@@ -253,17 +259,13 @@ public class ShipPlacementService {
 
         ships.add(ship);
         addFullHaloAroundShip(ship, cells);
-        deleteFromFreeCoordinates(cells);
+        if (freeCoordinates != null) {
+            deleteFromFreeCoordinates(freeCoordinates, cells);
+        }
         return true;
     }
 
     private boolean canPlaceShip(Cell[][] cells, boolean horizontal, Coordinate coordinate, int sizeShip) {
-        if (coordinate == null) {
-            throw new IllegalArgumentException("Coordinate is null");
-        }
-        if (cells == null) {
-            throw new IllegalArgumentException("Cells array is null");
-        }
         int x = coordinate.x();
         int y = coordinate.y();
         for (int i = 0; i < sizeShip; i++) {
@@ -276,17 +278,16 @@ public class ShipPlacementService {
         return true;
     }
 
-    private void deleteFromFreeCoordinates(Cell[][] cells) {
+    private void deleteFromFreeCoordinates(List<Coordinate> freeCoordinates, Cell[][] cells) {
         if (cells == null) {
             return;
         }
-        for (int x = 0; x < SIZE; x++) {
-            for (int y = 0; y < SIZE; y++) {
-                if (cells[x][y] == Cell.SHIP || cells[x][y] == Cell.HALO) {
-                    freeCoordinates.remove(new Coordinate(x, y));
-                }
-            }
-        }
+
+        freeCoordinates.removeIf(coordinate -> {
+            int x = coordinate.x();
+            int y = coordinate.y();
+            return cells[x][y] == Cell.SHIP || cells[x][y] == Cell.HALO;
+        });
     }
 
     /**
@@ -353,8 +354,9 @@ public class ShipPlacementService {
         if (cells == null) {
             return;
         }
-        for (int x = 0; x < SIZE; x++) {
-            for (int y = 0; y < SIZE; y++) {
+        int size = Board.SIZE;
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
                 if (cells[x][y] == Cell.HALO) {
                     cells[x][y] = Cell.EMPTY;
                 }
@@ -373,23 +375,23 @@ public class ShipPlacementService {
         if (coordinate == null) {
             return false;
         }
+        int size = Board.SIZE;
         int x = coordinate.x();
         int y = coordinate.y();
-        return x >= 0 && x < SIZE && y >= 0 && y < SIZE;
+        return x >= 0 && x < size && y >= 0 && y < size;
     }
 
-    public Board getBoard() {
-        return board;
-    }
-
-    public void setBoard(Board board) {
-        if (board == null) {
-            throw new IllegalArgumentException("Board is null");
+    private List<Coordinate> initListFreeCoords(Cell[][] cells) {
+        int size = Board.SIZE;
+        List<Coordinate> freeCoordinates = new ArrayList<>();
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++) {
+                if (cells[i][j] == null || cells[i][j] == Cell.EMPTY) {
+                    freeCoordinates.add(new Coordinate(i, j));
+                }
+            }
         }
-        this.board = board;
+        return freeCoordinates;
     }
 
-    public int getCountShips() {
-        return ships.size();
-    }
 }

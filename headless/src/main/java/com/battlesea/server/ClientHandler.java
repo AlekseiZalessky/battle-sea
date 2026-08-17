@@ -106,7 +106,14 @@ public class ClientHandler {
                 if (Commands.AUTO_PLACE.equals(input.getType())) {
                     log.debug(Commands.AUTO_PLACE);
                     service = new ShipPlacementService();
-                    playerBoard = service.generateRandomShips(player);
+                    if (playerBoard == null) {
+                        playerBoard = new Board();
+                    } else {
+                        playerBoard.init();
+                        playerBoard.getShips().clear();
+                    }
+
+                    playerBoard = service.generateRandomShips(player, playerBoard);
 
                     Message response = new Message();
                     response.setType(Commands.AUTO_PLACE_SUCCESS);
@@ -123,7 +130,6 @@ public class ClientHandler {
                     if (service == null) {
                         service = new ShipPlacementService();
                     }
-                    service.setBoard(playerBoard);
                     Coordinate coordinate = input.getCoordinate();
                     Coordinate oldCoordinate = input.getOldCoordinate();
                     boolean horizontalShip = input.isHorizontalShip();
@@ -131,38 +137,34 @@ public class ClientHandler {
                     Message response = new Message();
                     boolean result;
                     if (oldCoordinate == null) {
-                        result = service.placeShipManually(coordinate, horizontalShip, typeShip);
+                        result = service.placeShipManually(playerBoard, coordinate, horizontalShip, typeShip);
                     } else {
-                        result = service.relocateShip(coordinate, oldCoordinate);
+                        result = service.relocateShip(playerBoard, coordinate, oldCoordinate);
                     }
                     if (result) {
-                        playerBoard = service.getBoard();
                         response.setType(Commands.PLACE_SHIP_SUCCESS);
-                        if (service.getCountShips() == 10) {
+                        if (playerBoard.getShips().size() == 10) {
                             response.setAllShipPlaced(true);
                             service.clearHalo(playerBoard.getCells());
                         }
-                        response.setBoardCreator(playerBoard);
                     } else {
                         response.setType(Commands.PLACE_SHIP_FAIL);
-                        response.setBoardCreator(service.getBoard());
                     }
+                    response.setBoardCreator(playerBoard);
                     sendMessage(response);
                 }
 
                 if (Commands.CHANGE_ORIENTATION.equals(input.getType())) {
                     log.debug(Commands.CHANGE_ORIENTATION);
                     Coordinate coordinate = input.getCoordinate();
-                    boolean result = service.changeOrientationShip(coordinate);
+                    boolean result = service.changeOrientationShip(playerBoard, coordinate);
                     Message response = new Message();
                     if (result) {
                         response.setType(Commands.CHANGE_ORIENTATION_SUCCESS);
-                        response.setBoardCreator(service.getBoard());
-
                     } else {
                         response.setType(Commands.CHANGE_ORIENTATION_FAIL);
-                        response.setBoardCreator(service.getBoard());
                     }
+                    response.setBoardCreator(playerBoard);
                     sendMessage(response);
                 }
 
@@ -279,7 +281,7 @@ public class ClientHandler {
                     }
                     cancelTimer();
                     if (battleService.getCounter() == 0) {
-                        Thread.sleep(3000);
+//                        Thread.sleep(3000);
                     }
 
                     while (turnAI) {
