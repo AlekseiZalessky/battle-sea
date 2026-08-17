@@ -11,25 +11,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class BattleService {
-    private final Game game;
-    private final int SIZE_BOARD = Board.SIZE;
-    private Board targetBoard;
-    private boolean gameOver;
-    private Player turnPlayer;
     private static final Logger log = LoggerFactory.getLogger(BattleService.class);
-    private int counter;
 
-    public BattleService(Game game) {
-        if (game == null) {
-            throw new IllegalArgumentException("Game must not be null");
-        }
-        this.game = game;
-        turnPlayer = game.getTurnPlayer();
+
+    public BattleService() {
     }
 
-    public Cell shoot(Coordinate coordinate) {
+    public Cell shoot(Game game, Coordinate coordinate, Board targetBoard, BattleState battleState) {
         if (game == null) {
-            throw new IllegalStateException("Game is null");
+            throw new IllegalArgumentException("Game is null");
+        }
+        if (targetBoard == null) {
+            throw new IllegalArgumentException("Target board is null");
         }
         if (coordinate == null) {
             throw new IllegalArgumentException("Coordinate is null");
@@ -41,19 +34,10 @@ public class BattleService {
         int x = coordinate.x();
         int y = coordinate.y();
 
-        turnPlayer = game.getTurnPlayer();
+        Player turnPlayer = game.getTurnPlayer();
 
         if (turnPlayer == null) {
             throw new NullPointerException("Turn player is null");
-        }
-        if (turnPlayer.equals(game.getCreator())) {
-            targetBoard = game.getBoardOpponent();
-        } else {
-            targetBoard = game.getBoardCreator();
-        }
-
-        if (targetBoard == null) {
-            throw new IllegalStateException("Target board is null");
         }
 
         Cell[][] cells = targetBoard.getCells();
@@ -70,37 +54,29 @@ public class BattleService {
                 return null;
             case EMPTY:
                 cells[x][y] = Cell.MISS;
-                switchTurnPlayer();
+                switchTurnPlayer(game);
                 break;
             case SHIP:
                 cells[x][y] = Cell.HIT;
-                boolean isSunk = isSunk(coordinate, cells, targetBoard);
-                addHalo(coordinate, isSunk, cells);
+                boolean isSunk = isSunk(coordinate, targetBoard, battleState);
+                addHalo(coordinate, isSunk, targetBoard);
                 break;
         }
 
         Cell cellResult = cells[x][y];
-        counter++;
+        battleState.setFirstShoot(true);
         return cellResult;
     }
 
-    private boolean isSunk(Coordinate coordinate, Cell[][] cells, Board targetBoard) {
-        if (coordinate == null) {
-            throw new IllegalArgumentException("Coordinate is null");
-        }
-        if (targetBoard == null) {
-            throw new IllegalArgumentException("Board is null");
-        }
-        if (cells == null) {
-            throw new IllegalArgumentException("Cells array is null");
-        }
-        Ship ship = getShip(coordinate);
+    private boolean isSunk(Coordinate coordinate, Board targetBoard, BattleState battleState) {
+        Cell[][] cells = targetBoard.getCells();
+        Ship ship = getShip(coordinate, targetBoard);
         if (ship == null) {
             return false;
         }
         if (ship.getType() == TypeShip.OneDeckShip) {
             ship.setSunk(true);
-            gameOver = isGameOver(targetBoard);
+            battleState.setGameOver(isGameOver(targetBoard));
             return true;
         }
         boolean isSunk = true;
@@ -115,15 +91,12 @@ public class BattleService {
         }
         if (isSunk) {
             ship.setSunk(true);
-            gameOver = isGameOver(targetBoard);
+            battleState.setGameOver(isGameOver(targetBoard));
         }
         return isSunk;
     }
 
     private boolean isGameOver(Board targetBoard) {
-        if (targetBoard == null) {
-            throw new IllegalArgumentException("Target board is null");
-        }
         List<Ship> ships = targetBoard.getShips();
         for (Ship ship : ships) {
             if (!ship.isSunk()) {
@@ -133,17 +106,7 @@ public class BattleService {
         return true;
     }
 
-    public boolean isGameOver() {
-        return gameOver;
-    }
-
-    private Ship getShip(Coordinate coordinate) {
-        if (coordinate == null) {
-            throw new IllegalArgumentException("Coordinate is null");
-        }
-        if (targetBoard == null) {
-            throw new IllegalArgumentException("Board is null");
-        }
+    private Ship getShip(Coordinate coordinate, Board targetBoard) {
         List<Ship> ships = targetBoard.getShips();
         for (Ship ship : ships) {
             if (ship.getCoordinates().contains(coordinate)) {
@@ -154,24 +117,17 @@ public class BattleService {
     }
 
     private boolean validateCoordinate(Coordinate coordinate) {
-        if (coordinate == null) {
-            return false;
-        }
         int x = coordinate.x();
         int y = coordinate.y();
-        return x >= 0 && x < SIZE_BOARD && y >= 0 && y < SIZE_BOARD;
+        return x >= 0 && x < Board.SIZE && y >= 0 && y < Board.SIZE;
     }
 
-    private void addHalo(Coordinate coordinate, boolean isSunk, Cell[][] cells) {
-        if (coordinate == null) {
-            throw new IllegalArgumentException("Coordinate is null");
-        }
-        if (cells == null) {
-            throw new IllegalArgumentException("Cells array is null");
-        }
-        Ship ship = getShip(coordinate);
+    private void addHalo(Coordinate coordinate, boolean isSunk, Board targetBoard) {
+        Cell[][] cells =  targetBoard.getCells();
+        Ship ship = getShip(coordinate, targetBoard);
+
         if (ship == null) {
-            throw new IllegalStateException("Ship is null");
+            throw new IllegalStateException("Ship not found");
         }
 
         if (isSunk) {
@@ -185,9 +141,6 @@ public class BattleService {
     }
 
     private void addHaloAroundCell(Coordinate coordinate, boolean isSunk, Cell[][] cells) {
-        if (coordinate == null) {
-            throw new IllegalArgumentException("Coordinate is null");
-        }
         int x = coordinate.x();
         int y = coordinate.y();
 
@@ -206,16 +159,12 @@ public class BattleService {
         }
     }
 
-    public Game getGame() {
-        return game;
-    }
-
-    public void endGame() {
+    public void endGame(Game game) {
         if (game == null) {
-            throw new IllegalStateException("Game is null");
+            throw new IllegalArgumentException("Game is null");
         }
         if (game.getTurnPlayer() == null) {
-            throw new IllegalStateException("Turn player is null");
+            throw new IllegalArgumentException("Turn player is null");
         }
 
         game.setWinner(game.getTurnPlayer());
@@ -223,43 +172,23 @@ public class BattleService {
         game.setEndTime(LocalDateTime.now());
     }
 
-    public void switchTurnPlayer() {
+    public void switchTurnPlayer(Game game) {
         if (game == null) {
-            throw new IllegalStateException("Game is null");
+            throw new IllegalArgumentException("Game is null");
         }
-        if (turnPlayer == null) {
-            throw new IllegalStateException("Turn player is null");
-        }
-
+        Player turnPlayer = game.getTurnPlayer();
         log.debug("=== SWITCH TURN ===");
         log.debug("Current turnPlayer before switch: {}", turnPlayer);
         if (turnPlayer.equals(game.getCreator())) {
             turnPlayer = game.getOpponent();
-            targetBoard = game.getBoardCreator();
             log.debug("Switched: CREATOR -> OPPONENT");
         } else {
             turnPlayer = game.getCreator();
-            targetBoard = game.getBoardOpponent();
             log.debug("Switched: OPPONENT -> CREATOR");
         }
         game.setTurnPlayer(turnPlayer);
         log.debug("New turnPlayer: {}", turnPlayer);
         log.debug("=== SWITCH TURN END ===");
         System.out.println();
-    }
-
-    public int getCounter() {
-        return counter;
-    }
-
-    public void setTurnPlayer(Player turnPlayer) {
-        if (game == null) {
-            throw new IllegalArgumentException("Game is null");
-        }
-        this.turnPlayer = turnPlayer;
-    }
-
-    public void setGameOver(boolean gameOver) {
-        this.gameOver = gameOver;
     }
 }

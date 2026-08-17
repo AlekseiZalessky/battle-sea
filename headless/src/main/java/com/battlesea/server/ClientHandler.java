@@ -28,6 +28,7 @@ public class ClientHandler {
     private final PrintWriter out;
     private final Gson gson;
     private Board playerBoard;
+    private Board opponentBoard;
     private Game game;
     private final GameService gameService;
     private GameSession gameSession;
@@ -45,6 +46,7 @@ public class ClientHandler {
     private ShipPlacementService service;
     private List<Coordinate> coorForMoveAI;
     private AIState aiState;
+    private BattleState battleState;
 
 
     public ClientHandler(Socket socket, GameServer gameServer) throws Exception {
@@ -122,7 +124,7 @@ public class ClientHandler {
 
                 if (turnAI && !gameOver) {
                     cancelTimer();
-                    if (battleService.getCounter() == 0) {
+                    if (battleState.isFirstShoot()) {
 //                        Thread.sleep(3000);
                     }
 
@@ -153,7 +155,7 @@ public class ClientHandler {
         Message response = new Message();
         Coordinate target = input.getCoordinate();
         battleService = gameSession.getBattleService();
-        Cell resultShoot = battleService.shoot(target);
+        Cell resultShoot = battleService.shoot(game, target, opponentBoard, battleState);
         if (resultShoot == null) {
             return;
         }
@@ -202,7 +204,7 @@ public class ClientHandler {
         }
         game.setEndTime(LocalDateTime.now());
         game.setGameStatus(GameStatus.ABORTED);
-        battleService.setGameOver(true);
+        battleState.setGameOver(true);
         turnAI = false;
         Message response = new Message();
         response.setType(Commands.ABORTING_SUCCESS);
@@ -221,18 +223,25 @@ public class ClientHandler {
             gameSession = gameServer.getSession(game.getId());
         }
         battleService = gameSession.getBattleService();
-        battleService.setTurnPlayer(game.getTurnPlayer());
+        battleState = new BattleState();
+//        battleState.setTurnPlayer(game.getTurnPlayer());
     }
 
     private void startGamePVE() {
         game = gameService.startGame(player, playerBoard, GameMode.PVE);
         gameSession = gameServer.createSession(game);
         battleService = gameSession.getBattleService();
+        battleState = new BattleState();
         if (game.getTurnPlayer().equals(game.getOpponent())) {
             turnAI = true;
         } else {
             lastActionTime = System.currentTimeMillis();
             timer();
+        }
+        if (player.equals(game.getCreator())) {
+            opponentBoard = game.getBoardOpponent();
+        } else {
+            opponentBoard = game.getBoardOpponent();
         }
         Message response = new Message();
         response.setType(Commands.START_GAME_PVE_SUCCESS);
@@ -349,7 +358,7 @@ public class ClientHandler {
             aiState = new AIState();
         }
         Coordinate coordinate = aiService.chooseCoordinate(playerBoard, coorForMoveAI, aiState);
-        Cell resultShoot = battleService.shoot(coordinate);
+        Cell resultShoot = battleService.shoot(game, coordinate, playerBoard, battleState);
 
         if (resultShoot == Cell.HIT && !aiService.isSunk(coordinate, playerBoard, aiState)) {
             if (aiState.isHasHit()) {
@@ -405,6 +414,14 @@ public class ClientHandler {
                     opponentHandler.cancelTimer();
                 }
 
+                if (player.equals(game.getCreator())) {
+                    opponentBoard = game.getBoardOpponent();
+                    opponentHandler.setOpponentBoard(game.getBoardCreator());
+                } else {
+                    opponentBoard = game.getBoardCreator();
+                    opponentHandler.setOpponentBoard(game.getBoardOpponent());
+                }
+
                 response.setType(Commands.START_GAME_PVP_ONLINE_SUCCESS);
                 response.setGame(game);
                 response.setTimeStartTurn(System.currentTimeMillis());
@@ -443,7 +460,7 @@ public class ClientHandler {
             }
             if (System.currentTimeMillis() - lastActionTime >= TURN_TIME * 1000) {
                 log.debug(Commands.TURN_TIMEOUT);
-                battleService.switchTurnPlayer();
+                battleService.switchTurnPlayer(game);
                 if (game.getGameMode() == GameMode.PVE) {
                     turnAI = true;
                 }
@@ -478,19 +495,21 @@ public class ClientHandler {
         game = null;
         gameSession = null;
         aiService = null;
+        aiState = null;
         turnAI = false;
         gameOver = false;
         battleService = null;
+        battleState = null;
         service = null;
         coorForMoveAI = null;
     }
 
     private void isGameOver() {
-        gameOver = battleService.isGameOver();
+        gameOver = battleState.isGameOver();
         if (gameOver) {
             log.info(Commands.GAME_OVER);
             cancelTimers();
-            battleService.endGame();
+            battleService.endGame(game);
             turnAI = false;
             log.debug("game: {}", game);
             Message response = new Message();
@@ -507,6 +526,10 @@ public class ClientHandler {
         if (nextPlayerHandler != null) {
             nextPlayerHandler.cancelTimer();
         }
+    }
+
+    public void setOpponentBoard(Board opponentBoard) {
+        this.opponentBoard = opponentBoard;
     }
 
     private void broadcastToGamePlayers(GameServer gameServer, Message message) {
