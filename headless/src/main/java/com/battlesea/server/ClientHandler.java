@@ -18,6 +18,7 @@ import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class ClientHandler {
@@ -42,6 +43,8 @@ public class ClientHandler {
     private long lastActionTime;
     private Player player;
     private ShipPlacementService service;
+    private List<Coordinate> coorForMoveAI;
+    private AIState aiState;
 
 
     public ClientHandler(Socket socket, GameServer gameServer) throws Exception {
@@ -169,7 +172,6 @@ public class ClientHandler {
                 }
 
                 if (Commands.START_GAME_PVE.equals(input.getType())) {
-
                     log.debug(Commands.START_GAME_PVE);
                     game = gameService.startGame(player, playerBoard, GameMode.PVE);
                     gameSession = gameServer.createSession(game);
@@ -275,10 +277,8 @@ public class ClientHandler {
                     }
                 }
 
-                if (turnAI) {
-                    if (gameOver) {
-                        continue;
-                    }
+                if (turnAI && !gameOver) {
+
                     cancelTimer();
                     if (battleService.getCounter() == 0) {
 //                        Thread.sleep(3000);
@@ -286,21 +286,28 @@ public class ClientHandler {
 
                     while (turnAI) {
                         aiService = gameSession.getAiService();
-                        Coordinate coordinate = aiService.chooseCoordinate();
+
+                        if (coorForMoveAI == null) {
+                            coorForMoveAI = aiService.initListCoorForMoveAI(game.getBoardOpponent().getCells());
+                        }
+                        if (aiState == null) {
+                            aiState = new AIState();
+                        }
+                        Coordinate coordinate = aiService.chooseCoordinate(playerBoard, coorForMoveAI, aiState);
                         Cell resultShoot = battleService.shoot(coordinate);
 
-                        if (resultShoot == Cell.HIT && !aiService.isSunk(coordinate)) {
-                            if (aiService.isHasHit()) {
-                                aiService.setOrientation(coordinate);
+                        if (resultShoot == Cell.HIT && !aiService.isSunk(coordinate, playerBoard, aiState)) {
+                            if (aiState.isHasHit()) {
+                                aiService.setOrientation(coordinate, playerBoard, aiState);
                             }
 
-                            if (!aiService.isHasHit()) {
-                                aiService.setCoordinateHit(coordinate);
+                            if (!aiState.isHasHit()) {
+                                aiState.setCoordinateHit(coordinate);
                             }
-                            aiService.setHasHit(true);
+                            aiState.setHasHit(true);
                         }
-                        aiService.removeCoordinate(coordinate);
-                        aiService.updateFreeCoordinates();
+                        aiService.removeCoordinate(coordinate, coorForMoveAI);
+                        aiService.updateFreeCoordinates(coorForMoveAI, playerBoard.getCells());
                         Message response = new Message();
                         response.setType(Commands.RESULT_SHOOT);
                         response.setGame(game);
@@ -330,7 +337,7 @@ public class ClientHandler {
         } catch (Exception e) {
             log.error("Error in ClientHandler: {}", e.getMessage(), e);
         } finally {
-           disconnect();
+            disconnect();
         }
     }
 
@@ -436,6 +443,7 @@ public class ClientHandler {
         gameOver = false;
         battleService = null;
         service = null;
+        coorForMoveAI = null;
     }
 
     private void isGameOver() {
@@ -494,7 +502,7 @@ public class ClientHandler {
                 in.close();
                 log.debug("BufferedReader закрыт для игрока {}", player.getName());
             } catch (Exception e) {
-               log.error("Не удалось закрыть BufferedReader для игрока {}", player.getName(), e);
+                log.error("Не удалось закрыть BufferedReader для игрока {}", player.getName(), e);
             }
         }
 
