@@ -2,13 +2,18 @@
 eclipse.project.name = appName + '-core'
 
 dependencies {
+  implementation project(":shared")
   api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api project(':shared')
 
+  implementation 'com.google.code.gson:gson:2.10.1'
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
   }
+
+  implementation 'org.slf4j:slf4j-api:2.0.7'
+  implementation 'ch.qos.logback:logback-classic:1.5.13'
 }
 
 jar {

@@ -1,0 +1,154 @@
+package com.battlesea.model;
+
+import com.battlesea.enums.Cell;
+import com.battlesea.enums.TypeShip;
+
+public class Message {
+    private String type;
+    private String username;
+    private Board boardCreator;
+    private Game game;
+    private Cell resultShoot;
+    private Player currentPlayer;
+    private Player creator;
+    private Player opponent;
+    private long timeStartTurn;
+    private boolean horizontalShip;
+    private TypeShip typeShip;
+    private boolean allShipPlaced;
+    private Coordinate coordinate;
+    private Coordinate oldCoordinate;
+
+    public Message() {
+
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Board getBoardCreator() {
+        return boardCreator;
+    }
+
+    public void setBoardCreator(Board boardCreator) {
+        this.boardCreator = boardCreator;
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+    }
+
+    public Cell getResultShoot() {
+        return resultShoot;
+    }
+
+    public void setResultShoot(Cell resultShoot) {
+        this.resultShoot = resultShoot;
+    }
+
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public void setCurrentPlayer(Player currentPlayer) {
+        this.currentPlayer = currentPlayer;
+    }
+
+
+    public void setCreator(Player creator) {
+        this.creator = creator;
+    }
+
+    public Player getOpponent() {
+        return opponent;
+    }
+
+    public void setOpponent(Player opponent) {
+        this.opponent = opponent;
+    }
+
+    public long getTimeStartTurn() {
+        return timeStartTurn;
+    }
+
+    public void setTimeStartTurn(long timeStartTurn) {
+        this.timeStartTurn = timeStartTurn;
+    }
+
+    public boolean isHorizontalShip() {
+        return horizontalShip;
+    }
+
+    public void setHorizontalShip(boolean horizontalShip) {
+        this.horizontalShip = horizontalShip;
+    }
+
+    public TypeShip getTypeShip() {
+        return typeShip;
+    }
+
+    public void setTypeShip(TypeShip typeShip) {
+        this.typeShip = typeShip;
+    }
+
+    public boolean isAllShipPlaced() {
+        return allShipPlaced;
+    }
+
+    public void setAllShipPlaced(boolean allShipPlaced) {
+        this.allShipPlaced = allShipPlaced;
+    }
+
+    public Coordinate getCoordinate() {
+        return coordinate;
+    }
+
+    public void setCoordinate(Coordinate coordinate) {
+        this.coordinate = coordinate;
+    }
+
+    public Coordinate getOldCoordinate() {
+        return oldCoordinate;
+    }
+
+    public void setOldCoordinate(Coordinate oldCoordinate) {
+        this.oldCoordinate = oldCoordinate;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+            "type='" + type + '\'' +
+            ", username='" + username + '\'' +
+            ", boardCreator=" + boardCreator +
+            ", game=" + game +
+            ", resultShoot=" + resultShoot +
+            ", currentPlayer=" + currentPlayer +
+            ", creator=" + creator +
+            ", opponent=" + opponent +
+            ", timeStartTurn=" + timeStartTurn +
+            ", horizontalShip=" + horizontalShip +
+            ", typeShip=" + typeShip +
+            ", allShipPlaced=" + allShipPlaced +
+            ", coordinate=" + coordinate +
+            ", oldCoordinate=" + oldCoordinate +
+            '}';
+    }
+}
