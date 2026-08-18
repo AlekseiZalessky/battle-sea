@@ -8,6 +8,11 @@ public class Player {
     private String name;
 
 
+    public Player() {
+        this.id = UUID.randomUUID();
+        this.name = "Player_" + String.valueOf(id).substring(0, 6);
+    }
+
     public Player(String name) {
         this.id = UUID.randomUUID();
         this.name = name;
@@ -19,6 +24,10 @@ public class Player {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

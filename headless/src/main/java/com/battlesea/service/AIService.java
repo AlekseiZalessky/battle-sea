@@ -2,9 +2,9 @@ package com.battlesea.service;
 
 import com.battlesea.enums.Cell;
 import com.battlesea.enums.TypeShip;
+import com.battlesea.model.AIState;
 import com.battlesea.model.Board;
 import com.battlesea.model.Coordinate;
-import com.battlesea.model.Game;
 import com.battlesea.model.Ship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,45 +15,38 @@ import java.util.Random;
 
 public class AIService {
     private static final Logger log = LoggerFactory.getLogger(AIService.class);
-    private Game game;
-    private final List<Coordinate> coorForMoveAI = new ArrayList<>();
-    private final int SIZE_BOARD = Board.SIZE;
-    private Board targetBoard;
-    private Cell[][] cells;
-    private boolean hasHit;
-    private Coordinate coordinateHit;
-    private boolean hasOrientation;
-    private boolean isHorizontal;
     private final Random random = new Random();
 
-    public AIService(Game game) {
-        this.game = game;
-        this.targetBoard = game.getBoardCreator();
-        this.cells = targetBoard.getCells();
+    public AIService() {
+
     }
 
-    {
-        for (int i = 0; i < SIZE_BOARD; i++) {
-            for (int j = 0; j < SIZE_BOARD; j++) {
-                coorForMoveAI.add(new Coordinate(i, j));
-            }
+    public Coordinate chooseCoordinate(Board board, List<Coordinate> coorForMoveAI, AIState aiState) {
+        if (board == null) {
+            log.error("Board is null");
+            throw new IllegalArgumentException("Board can't be null");
         }
-    }
+        if (coorForMoveAI == null) {
+            log.error("coorForMoveAI is null");
+            throw new IllegalArgumentException("COORDINATE can't be null");
+        }
+        if (aiState == null) {
+            log.error("AIState is null");
+            throw new IllegalArgumentException("AIState can't be null");
+        }
 
-    public Coordinate chooseCoordinate() {
-        log.debug("Choose coordinate");
+        Cell[][] cells = board.getCells();
         Coordinate coordinateForNextShoot;
-        if (!hasHit) {
-            log.debug("hasHit false");
+        if (!aiState.isHasHit()) {
             coordinateForNextShoot = randomCoordinate(coorForMoveAI);
             return coordinateForNextShoot;
         }
 
-        int x = coordinateHit.x();
-        int y = coordinateHit.y();
+        int x = aiState.getCoordinateHit().x();
+        int y = aiState.getCoordinateHit().y();
         List<Coordinate> coordinatesForNextShoot = new ArrayList<>();
 
-        if (!hasOrientation) {
+        if (!aiState.isHasOrientation()) {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
                     if (Math.abs(dx) == 1 && Math.abs(dy) == 1) {
@@ -73,23 +66,20 @@ public class AIService {
             coordinateForNextShoot = randomCoordinate(coordinatesForNextShoot);
             return coordinateForNextShoot;
         } else {
-            log.debug("hasOrientation true");
-            checkCoordinate(coordinatesForNextShoot);
+            checkCoordinate(coordinatesForNextShoot, cells, aiState);
             coordinateForNextShoot = randomCoordinate(coordinatesForNextShoot);
-            log.debug("coordinateForNextShoot: {}", coordinateForNextShoot);
             return coordinateForNextShoot;
-
         }
     }
 
-    private void checkCoordinate(List<Coordinate> coordinatesForNextShoot) {
+    private void checkCoordinate(List<Coordinate> coordinatesForNextShoot, Cell[][] cells, AIState aiState) {
 
-        int x = coordinateHit.x();
-        int y = coordinateHit.y();
+        int x = aiState.getCoordinateHit().x();
+        int y = aiState.getCoordinateHit().y();
         boolean flag = false;
 
         while (!flag) {
-            if (isHorizontal) {
+            if (aiState.isHorizontal()) {
                 x--;
             } else {
                 y--;
@@ -112,12 +102,12 @@ public class AIService {
             }
         }
 
-        x = coordinateHit.x();
-        y = coordinateHit.y();
+        x = aiState.getCoordinateHit().x();
+        y = aiState.getCoordinateHit().y();
         flag = false;
 
         while (!flag) {
-            if (isHorizontal) {
+            if (aiState.isHorizontal()) {
                 x++;
             } else {
                 y++;
@@ -145,42 +135,28 @@ public class AIService {
         if (coordinates == null || coordinates.isEmpty()) {
             throw new IllegalArgumentException("Invalid list of coordinates");
         }
-        log.debug("List coordinates: {}", coordinates);
-
         return coordinates.get(random.nextInt(coordinates.size()));
     }
 
     private boolean validateCoordinate(int x, int y) {
-        return x >= 0 && y >= 0 && x < SIZE_BOARD && y < SIZE_BOARD;
+        return x >= 0 && y >= 0 && x < Board.SIZE && y < Board.SIZE;
     }
 
-    public void removeCoordinate(Coordinate coordinate) {
+    public void removeCoordinate(Coordinate coordinate, List<Coordinate> coorForMoveAI) {
         if (coordinate == null) {
+            log.error("coordinate is null");
             throw new IllegalArgumentException("Invalid coordinate");
+        }
+        if (coorForMoveAI == null) {
+            log.error("coorForMoveAI is null");
+            throw new IllegalArgumentException("CoorForMoveAI is null");
         }
         coorForMoveAI.remove(coordinate);
     }
 
-    public void setHasHit(boolean hasHit) {
-        this.hasHit = hasHit;
-    }
-
-    public void setCoordinateHit(Coordinate coordinateHit) {
-        if (coordinateHit == null) {
-            throw new IllegalArgumentException("Invalid coordinate");
-        }
-        this.coordinateHit = coordinateHit;
-    }
-
-    public boolean isHasHit() {
-        return hasHit;
-    }
-
-    private Ship getShip(Coordinate coordinate) {
-        if (coordinate == null) {
-            throw new IllegalArgumentException("Invalid coordinate");
-        }
+    private Ship getShip(Coordinate coordinate, Board targetBoard) {
         List<Ship> ships = targetBoard.getShips();
+        log.debug("getShip: {}", ships);
         for (Ship ship : ships) {
             if (ship.getCoordinates().contains(coordinate)) {
                 log.debug("Found ship: {}", ship);
@@ -191,58 +167,95 @@ public class AIService {
         return null;
     }
 
-    public void setOrientation(Coordinate coordinate) {
+    public void setOrientation(Coordinate coordinate, Board targetBoard, AIState aiState) {
         if (coordinate == null) {
+            log.error("coordinate is null");
             throw new IllegalArgumentException("Invalid coordinate");
         }
-        Ship ship = getShip(coordinate);
+        if (targetBoard == null) {
+            log.error("targetBoard is null");
+            throw new IllegalArgumentException("targetBoard is null");
+        }
+        if (aiState == null) {
+            log.error("AIState is null");
+            throw new IllegalArgumentException("AIState is null");
+        }
+        Ship ship = getShip(coordinate, targetBoard);
         if (ship == null) {
+            log.error("ship not found");
             throw new NullPointerException("Ship not found");
         }
         if (ship.getType() == TypeShip.OneDeckShip) {
             return;
         }
-        hasOrientation = true;
-        isHorizontal = ship.isHorizontal();
+        aiState.setHasOrientation(true);
+        aiState.setHorizontal(ship.isHorizontal());
     }
 
-    public boolean isSunk(Coordinate coordinate) {
+    public boolean isSunk(Coordinate coordinate, Board targetBoard, AIState aiState) {
         if (coordinate == null) {
+            log.error("coordinate is null");
             throw new IllegalArgumentException("Invalid coordinate");
         }
-        Ship ship = getShip(coordinate);
+        if (targetBoard == null) {
+            log.error("targetBoard is null");
+            throw new IllegalArgumentException("targetBoard is null");
+        }
+        if (aiState == null) {
+            log.error("AIState is null");
+            throw new IllegalArgumentException("AIState is null");
+        }
+        Ship ship = getShip(coordinate, targetBoard);
         if (ship == null) {
             throw new NullPointerException("Ship not found");
         }
         if (ship.getType() == TypeShip.OneDeckShip) {
-            log.debug("Found ship is sunk: {}", ship);
             return true;
         }
         if (ship.isSunk()) {
-            update();
+            update(aiState);
             return true;
         }
         return false;
     }
 
-    private void update() {
+    private void update(AIState aiState) {
         log.debug("Ship is Sunk. Updating...");
-        hasHit = false;
-        coordinateHit = null;
-        hasOrientation = false;
-        isHorizontal = false;
+        aiState.setHasOrientation(false);
+        aiState.setHorizontal(false);
+        aiState.setHasHit(false);
+        aiState.setCoordinateHit(null);
     }
 
-    public void updateFreeCoordinates() {
-//        log.debug("Updating free coordinates...");
-//        log.debug("Size coorForMoveAI before updating: {}", coorForMoveAI.size());
-        for (int i = 0; i < SIZE_BOARD; i++) {
-            for (int j = 0; j < SIZE_BOARD; j++) {
-                if(cells[i][j] == Cell.HALO || cells[i][j] == Cell.MISS || cells[i][j] == Cell.HIT) {
+    public void updateFreeCoordinates(List<Coordinate> coorForMoveAI, Cell[][] cells) {
+        if (coorForMoveAI == null) {
+            log.error("coorForMoveAI is null");
+            throw new IllegalArgumentException("coorForMoveAI is null");
+        }
+        if (cells == null) {
+            log.error("cells is null");
+            throw new IllegalArgumentException("cells is null");
+        }
+        for (int i = 0; i < Board.SIZE; i++) {
+            for (int j = 0; j < Board.SIZE; j++) {
+                if (cells[i][j] == Cell.HALO || cells[i][j] == Cell.MISS || cells[i][j] == Cell.HIT) {
                     coorForMoveAI.remove(new Coordinate(i, j));
                 }
             }
         }
-//        log.debug("Size coorForMoveAI after updating: {}", coorForMoveAI.size());
+    }
+
+    public List<Coordinate> initListCoorForMoveAI(Cell[][] cells) {
+        if (cells == null) {
+            log.error("cells is null");
+            throw new IllegalArgumentException("Invalid cells");
+        }
+        List<Coordinate> coorForMoveAI = new ArrayList<>();
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[i].length; j++) {
+                coorForMoveAI.add(new Coordinate(i, j));
+            }
+        }
+        return coorForMoveAI;
     }
 }

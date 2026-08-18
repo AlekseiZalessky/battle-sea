@@ -1,21 +1,23 @@
 package com.battlesea.model;
 
 import com.battlesea.enums.Cell;
+import com.battlesea.enums.TypeShip;
 
 public class Message {
     private String type;
     private String username;
-    private int x;
-    private int y;
-    private Board boardPlayer1;
-    private Board boardPlayer2;
+    private Board boardCreator;
     private Game game;
     private Cell resultShoot;
     private Player currentPlayer;
     private Player creator;
     private Player opponent;
     private long timeStartTurn;
-
+    private boolean horizontalShip;
+    private TypeShip typeShip;
+    private boolean allShipPlaced;
+    private Coordinate coordinate;
+    private Coordinate oldCoordinate;
 
     public Message() {
 
@@ -37,36 +39,12 @@ public class Message {
         this.username = username;
     }
 
-    public int getX() {
-        return x;
+    public Board getBoardCreator() {
+        return boardCreator;
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public Board getBoardPlayer1() {
-        return boardPlayer1;
-    }
-
-    public void setBoardPlayer1(Board boardPlayer1) {
-        this.boardPlayer1 = boardPlayer1;
-    }
-
-    public Board getBoardPlayer2() {
-        return boardPlayer2;
-    }
-
-    public void setBoardPlayer2(Board boardPlayer2) {
-        this.boardPlayer2 = boardPlayer2;
+    public void setBoardCreator(Board boardCreator) {
+        this.boardCreator = boardCreator;
     }
 
     public Game getGame() {
@@ -93,9 +71,6 @@ public class Message {
         this.currentPlayer = currentPlayer;
     }
 
-    public Player getCreator() {
-        return creator;
-    }
 
     public void setCreator(Player creator) {
         this.creator = creator;
@@ -117,20 +92,63 @@ public class Message {
         this.timeStartTurn = timeStartTurn;
     }
 
+    public boolean isHorizontalShip() {
+        return horizontalShip;
+    }
+
+    public void setHorizontalShip(boolean horizontalShip) {
+        this.horizontalShip = horizontalShip;
+    }
+
+    public TypeShip getTypeShip() {
+        return typeShip;
+    }
+
+    public void setTypeShip(TypeShip typeShip) {
+        this.typeShip = typeShip;
+    }
+
+    public boolean isAllShipPlaced() {
+        return allShipPlaced;
+    }
+
+    public void setAllShipPlaced(boolean allShipPlaced) {
+        this.allShipPlaced = allShipPlaced;
+    }
+
+    public Coordinate getCoordinate() {
+        return coordinate;
+    }
+
+    public void setCoordinate(Coordinate coordinate) {
+        this.coordinate = coordinate;
+    }
+
+    public Coordinate getOldCoordinate() {
+        return oldCoordinate;
+    }
+
+    public void setOldCoordinate(Coordinate oldCoordinate) {
+        this.oldCoordinate = oldCoordinate;
+    }
+
     @Override
     public String toString() {
         return "Message{" +
             "type='" + type + '\'' +
             ", username='" + username + '\'' +
-            ", x=" + x +
-            ", y=" + y +
-            ", boardPlayer1=" + boardPlayer1 +
-            ", boardPlayer2=" + boardPlayer2 +
+            ", boardCreator=" + boardCreator +
             ", game=" + game +
             ", resultShoot=" + resultShoot +
-            ", turnPlayer=" + currentPlayer +
+            ", currentPlayer=" + currentPlayer +
             ", creator=" + creator +
             ", opponent=" + opponent +
+            ", timeStartTurn=" + timeStartTurn +
+            ", horizontalShip=" + horizontalShip +
+            ", typeShip=" + typeShip +
+            ", allShipPlaced=" + allShipPlaced +
+            ", coordinate=" + coordinate +
+            ", oldCoordinate=" + oldCoordinate +
             '}';
     }
 }

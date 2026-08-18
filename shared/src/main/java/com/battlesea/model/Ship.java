@@ -4,12 +4,15 @@ import com.battlesea.enums.TypeShip;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 public class Ship {
-    private final int x;
-    private final int y;
+    private final String id = UUID.randomUUID().toString();
+    private int x;
+    private int y;
     private boolean isSunk;
-    private final boolean horizontal;
+    private boolean horizontal;
     private final TypeShip type;
     private final List<Coordinate> coordinates = new ArrayList<>();
 
@@ -44,12 +47,24 @@ public class Ship {
         return horizontal;
     }
 
+    public void setHorizontal(boolean horizontal) {
+        this.horizontal = horizontal;
+    }
+
     public TypeShip getType() {
         return type;
     }
 
     public List<Coordinate> getCoordinates() {
         return coordinates;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     @Override
@@ -62,5 +77,17 @@ public class Ship {
             ", type=" + type +
             ", coordinates=" + coordinates +
             '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Ship ship = (Ship) o;
+        return Objects.equals(id, ship.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

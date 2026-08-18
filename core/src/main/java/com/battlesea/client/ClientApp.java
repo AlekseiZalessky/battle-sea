@@ -1,4 +1,4 @@
-package com.battlesea.Client;
+package com.battlesea.client;
 
 public class ClientApp {
     private static String host = "localhost";
