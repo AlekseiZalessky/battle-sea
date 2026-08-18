@@ -38,6 +38,7 @@ public class Client {
     private boolean allShipPlaced;
     private boolean placeShipSuccess;
     private boolean changeOrientationSuccess;
+    private boolean soundOn = false;
 
     public void updateOnStartGame() {
         boardCreator = null;
@@ -136,12 +137,7 @@ public class Client {
                         if (result == null) {
                             continue;
                         }
-                        if (result.equals(Cell.HIT)) {
-                            playShootSound("/hit.wav");
-                        }
-                        if (result.equals(Cell.MISS)) {
-                            playShootSound("/miss.wav");
-                        }
+                        soundShoot(result);
 
                         game = message.getGame();
                         update();
@@ -154,11 +150,7 @@ public class Client {
                         game = message.getGame();
                         update();
                         gameOver = true;
-                        if (currnetPlayer.equals(winner())) {
-                            playShootSound("/won.wav");
-                        } else {
-                            playShootSound("/lost.wav");
-                        }
+                        soundEndGame();
                     }
 
                     if (Commands.ABORTING_SUCCESS.equals(message.getType())) {
@@ -167,10 +159,12 @@ public class Client {
                         game = message.getGame();
                         update();
                         gameOver = true;
-                        if (currnetPlayer.equals(winner())) {
-                            playShootSound("/win.wav");
-                        } else {
-                            playShootSound("/lost.wav");
+                        if (soundOn) {
+                            if (currnetPlayer.equals(winner())) {
+                                playShootSound("/win.wav");
+                            } else {
+                                playShootSound("/lost.wav");
+                            }
                         }
                     }
 
@@ -195,6 +189,27 @@ public class Client {
 
         networkThread.setDaemon(true);
         networkThread.start();
+    }
+
+    private void soundShoot(Cell result) {
+        if (soundOn) {
+            if (result.equals(Cell.HIT)) {
+                playShootSound("/hit.wav");
+            }
+            if (result.equals(Cell.MISS)) {
+                playShootSound("/miss.wav");
+            }
+        }
+    }
+
+    private void soundEndGame() {
+        if (soundOn) {
+            if (currnetPlayer.equals(winner())) {
+                playShootSound("/won.wav");
+            } else {
+                playShootSound("/lost.wav");
+            }
+        }
     }
 
     private void authentication() throws IOException {
