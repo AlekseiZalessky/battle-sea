@@ -3,7 +3,6 @@ package com.battlesea;
 import com.badlogic.gdx.Game;
 import com.battlesea.client.Client;
 import com.battlesea.screens.MenuScreen;
-import com.battlesea.service.BattleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

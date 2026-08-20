@@ -1,12 +1,19 @@
 package com.battlesea.model;
 
+import com.battlesea.enums.Cell;
 import com.battlesea.enums.TypeShip;
+import lombok.Getter;
+import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Setter
+@Getter
 public class Ship {
     private final String id = UUID.randomUUID().toString();
     private int x;
@@ -15,6 +22,7 @@ public class Ship {
     private boolean horizontal;
     private final TypeShip type;
     private final List<Coordinate> coordinates = new ArrayList<>();
+    private static final Logger log = LoggerFactory.getLogger(Ship.class);
 
     public Ship(int x, int y, boolean horizontal, TypeShip type) {
         this.x = x;
@@ -23,48 +31,19 @@ public class Ship {
         this.type = type;
     }
 
-    public void setSunk(boolean sunk) {
-        this.isSunk = sunk;
+    public boolean checkIsSunk(Cell[][] cells) {
+        log.debug("checkIsSunk");
+        for (Coordinate coordinate : coordinates) {
+            if (cells[coordinate.x()][coordinate.y()] == Cell.SHIP){
+                return false;
+            }
+        }
+        isSunk = true;
+        return true;
     }
 
     public void addCoordinates(Coordinate coordinates) {
         this.coordinates.add(coordinates);
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public boolean isSunk() {
-        return isSunk;
-    }
-
-    public boolean isHorizontal() {
-        return horizontal;
-    }
-
-    public void setHorizontal(boolean horizontal) {
-        this.horizontal = horizontal;
-    }
-
-    public TypeShip getType() {
-        return type;
-    }
-
-    public List<Coordinate> getCoordinates() {
-        return coordinates;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 
     @Override
